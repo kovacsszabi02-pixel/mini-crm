@@ -133,16 +133,32 @@ app.listen(PORT, () => {
 });
 
 setInterval(() => {}, 1000000);
+
 pool.query(`
   CREATE TABLE IF NOT EXISTS partners (
     id SERIAL PRIMARY KEY,
     company_name TEXT NOT NULL,
     contact_person TEXT,
     phone TEXT,
+    email TEXT,
+    revenue TEXT,
+    tax_number TEXT,
+    billing_address TEXT,
     status TEXT
-  )
+  );
+
+  CREATE TABLE IF NOT EXISTS audit_logs (
+    id SERIAL PRIMARY KEY,
+    partner_id INT,
+    user_name TEXT,
+    action_type TEXT,
+    old_status TEXT,
+    new_status TEXT,
+    note TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
 `).then(() => {
-  console.log("✔ Partners tábla sikeresen ellenőrizve/létrehozva.");
+  console.log("✔ Minden szükséges tábla sikeresen létrehozva/ellenőrizve.");
 }).catch(err => {
-  console.error("❌ Hiba a tábla létrehozásakor:", err);
+  console.error("❌ Hiba a táblák létrehozásakor:", err);
 });
