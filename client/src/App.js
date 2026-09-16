@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://mini-crm-44xt.onrender.com';
+
 const STATUSES = [
   '1. Új lead',
   '2. Kapcsolatfelvétel alatt',
@@ -37,7 +39,7 @@ function App() {
 
   const fetchPartners = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/partners');
+      const response = await fetch(`${BACKEND_URL}/api/partners`);
       const data = await response.json();
       setPartners(data);
     } catch (err) {
@@ -47,7 +49,7 @@ function App() {
 
   const fetchLogs = async (partnerId) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/partners/${partnerId}/logs`);
+      const response = await fetch(`${BACKEND_URL}/api/partners/${partnerId}/logs`);
       const data = await response.json();
       setLogs(data);
     } catch (err) {
@@ -80,7 +82,7 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5001/api/partners', {
+      const response = await fetch(`${BACKEND_URL}/api/partners`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -101,7 +103,7 @@ function App() {
   const handleUpdateStatus = async () => {
     if (!selectedPartner) return;
     try {
-      const response = await fetch(`http://localhost:5001/api/partners/${selectedPartner.id}/status`, {
+      const response = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus, note: statusNote })
@@ -121,7 +123,7 @@ function App() {
   const handleAddPlainNote = async () => {
     if (!plainNote.trim() || !selectedPartner) return;
     try {
-      const response = await fetch(`http://localhost:5001/api/partners/${selectedPartner.id}/logs`, {
+      const response = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/logs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ note: plainNote })
@@ -140,7 +142,7 @@ function App() {
     if (!isConfirmed) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/partners/${partnerId}`, {
+      const response = await fetch(`${BACKEND_URL}/api/partners/${partnerId}`, {
         method: 'DELETE'
       });
       if (response.ok) {
