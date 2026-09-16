@@ -107,7 +107,7 @@ function AddPartnerForm({ onPartnerAdded }) {
 function App() {
   const [partners, setPartners] = useState([]);
   const [selectedPartner, setSelectedPartner] = useState(null);
-  const [editingPartner, setEditingPartner] = useState(null); // Szerkesztés alatt álló partner adatai
+  const [editingPartner, setEditingPartner] = useState(null);
   const [logs, setLogs] = useState([]);
 
   const [newStatus, setNewStatus] = useState('');
@@ -201,7 +201,6 @@ function App() {
     }
   };
 
-  // Szerkesztés mentése
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!editingPartner) return;
@@ -234,7 +233,6 @@ function App() {
 
       <AddPartnerForm onPartnerAdded={fetchPartners} />
 
-      {/* Szerkesztő Modal / Panel, ha éppen szerkesztünk egy partnert */}
       {editingPartner && (
         <div style={{ background: '#fff3cd', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #ffeeba' }}>
           <h3>Partner szerkesztése: {editingPartner.company_name}</h3>
@@ -358,7 +356,7 @@ function App() {
                 logs.map((log) => (
                   <li key={log.id} style={{ background: '#fff', border: '1px solid #eee', padding: '10px', marginBottom: '8px', borderRadius: '4px' }}>
                     <strong>{log.user_name}</strong> <span style={{ color: '#666', fontSize: '12px', marginLeft: '8px' }}>{new Date(log.created_at).toLocaleString()}</span>
-                    <div style={{ marginTop: '5px'}>{log.note}</div>
+                    <div style={{ marginTop: '5px' }}>{log.note}</div>
                   </li>
                 ))
               )}
