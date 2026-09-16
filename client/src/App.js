@@ -160,20 +160,24 @@ function App() {
 
       <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #ddd' }}>
         <h3>Új partner rögzítése</h3>
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
-          <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév *</label><input name="company_name" value={formData.company_name} onChange={handleChange} required style={{ width: '90%', padding: '8px', marginTop: '4px' }}/></div>
-          <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kapcsolattartó *</label><input name="contact_person" value={formData.contact_person} onChange={handleChange} required style={{ width: '90%', padding: '8px', marginTop: '4px' }}/></div>
-          <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Telefonszám * (csak számok)</label><input name="phone" value={formData.phone} onChange={handleChange} required style={{ width: '90%', padding: '8px', marginTop: '4px' }}/></div>
-          <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email</label><input name="email" type="email" value={formData.email} onChange={handleChange} style={{ width: '90%', padding: '8px', marginTop: '4px' }}/></div>
-          <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Árbevétel</label><input name="revenue" value={formData.revenue} onChange={handleChange} style={{ width: '90%', padding: '8px', marginTop: '4px' }}/></div>
-          <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Adószám</label><input name="tax_number" value={formData.tax_number} onChange={handleChange} style={{ width: '90%', padding: '8px', marginTop: '4px' }}/></div>
-          <div style={{ gridColumn: 'span 2' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Számlázási cím</label><input name="billing_address" value={formData.billing_address} onChange={handleChange} style={{ width: '95%', padding: '8px', marginTop: '4px' }}/></div>
-          <div style={{ gridColumn: 'span 4', marginTop: '10px' }}><button type="submit" style={{ padding: '10px 24px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Partner Rögzítése</button></div>
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév *</label><br/><input name="company_name" value={formData.company_name} onChange={handleChange} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
+            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kapcsolattartó *</label><br/><input name="contact_person" value={formData.contact_person} onChange={handleChange} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
+            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Telefonszám * (csak számok)</label><br/><input name="phone" value={formData.phone} onChange={handleChange} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
+            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email</label><br/><input name="email" type="email" value={formData.email} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
+            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Árbevétel</label><br/><input name="revenue" value={formData.revenue} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
+            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Adószám</label><br/><input name="tax_number" value={formData.tax_number} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
+            <div style={{ flex: '1 1 48%', minWidth: '300px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Számlázási cím</label><br/><input name="billing_address" value={formData.billing_address} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
+          </div>
+          <div style={{ marginTop: '15px' }}>
+            <button type="submit" style={{ padding: '10px 24px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Partner Rögzítése</button>
+          </div>
         </form>
       </div>
 
-      <div style={{ display: 'flex', gap: '20px' }}>
-        <div style={{ flex: 1.2 }}>
+      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+        <div style={{ flex: '1.2 1 400px' }}>
           <h2>Partnerek Listája</h2>
           <table border="1" cellPadding="8" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
             <thead style={{ background: '#eee' }}>
@@ -211,7 +215,7 @@ function App() {
         </div>
 
         {selectedPartner && (
-          <div style={{ flex: 1, border: '1px solid #ddd', padding: '15px', borderRadius: '8px', background: '#fafafa' }}>
+          <div style={{ flex: '1 1 350px', border: '1px solid #ddd', padding: '15px', borderRadius: '8px', background: '#fafafa' }}>
             <h2>Partner Fal: {selectedPartner.company_name}</h2>
             <p style={{ margin: '5px 0' }}><strong>Kapcsolattartó:</strong> {selectedPartner.contact_person} ({selectedPartner.phone})</p>
             <p style={{ margin: '5px 0' }}><strong>Adószám:</strong> {selectedPartner.tax_number || '-'}</p>
@@ -222,12 +226,12 @@ function App() {
             <div style={{ background: '#fff', padding: '12px', borderRadius: '6px', border: '1px solid #eee', marginBottom: '15px' }}>
               <h4>Státusz módosítása (12 szint)</h4>
               <div style={{ marginBottom: '8px' }}>
-                <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} style={{ padding: '8px', width: '100%' }}>
+                <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} style={{ padding: '8px', width: '100%', boxSizing: 'border-box' }}>
                   {STATUSES.map((st) => (<option key={st} value={st}>{st}</option>))}
                 </select>
               </div>
               <div style={{ marginBottom: '8px' }}>
-                <input type="text" placeholder="Státuszváltás megjegyzése / indoklása..." value={statusNote} onChange={(e) => setStatusNote(e.target.value)} style={{ padding: '8px', width: '96%' }}/>
+                <input type="text" placeholder="Státuszváltás megjegyzése / indoklása..." value={statusNote} onChange={(e) => setStatusNote(e.target.value)} style={{ padding: '8px', width: '100%', boxSizing: 'border-box' }}/>
               </div>
               <button type="button" onClick={handleUpdateStatus} style={{ padding: '8px 14px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
                 Státusz frissítése és rögzítése
@@ -237,7 +241,7 @@ function App() {
             <div style={{ background: '#fff', padding: '12px', borderRadius: '6px', border: '1px solid #eee', marginBottom: '15px' }}>
               <h4>Új megjegyzés a falra</h4>
               <div style={{ display: 'flex', gap: '5px' }}>
-                <input type="text" placeholder="Írj egy megjegyzést..." value={plainNote} onChange={(e) => setPlainNote(e.target.value)} style={{ flex: 1, padding: '8px' }}/>
+                <input type="text" placeholder="Írj egy megjegyzést..." value={plainNote} onChange={(e) => setPlainNote(e.target.value)} style={{ flex: 1, padding: '8px', boxSizing: 'border-box' }}/>
                 <button type="button" onClick={handleAddPlainNote} style={{ padding: '8px 14px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Rögzítés</button>
               </div>
             </div>
