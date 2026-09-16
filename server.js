@@ -140,12 +140,13 @@ pool.query(`
     company_name TEXT NOT NULL,
     contact_person TEXT,
     phone TEXT,
-    email TEXT,
-    revenue TEXT,
-    tax_number TEXT,
-    billing_address TEXT,
     status TEXT
   );
+
+  ALTER TABLE partners ADD COLUMN IF NOT EXISTS email TEXT;
+  ALTER TABLE partners ADD COLUMN IF NOT EXISTS revenue TEXT;
+  ALTER TABLE partners ADD COLUMN IF NOT EXISTS tax_number TEXT;
+  ALTER TABLE partners ADD COLUMN IF NOT EXISTS billing_address TEXT;
 
   CREATE TABLE IF NOT EXISTS audit_logs (
     id SERIAL PRIMARY KEY,
@@ -158,7 +159,7 @@ pool.query(`
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 `).then(() => {
-  console.log("✔ Minden szükséges tábla sikeresen létrehozva/ellenőrizve.");
+  console.log("✔ Adatbázis sémák és hiányzó oszlopok sikeresen frissítve.");
 }).catch(err => {
-  console.error("❌ Hiba a táblák létrehozásakor:", err);
+  console.error("❌ Hiba az adatbázis sémák frissítésekor:", err);
 });
