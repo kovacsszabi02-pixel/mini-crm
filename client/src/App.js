@@ -73,10 +73,10 @@ function App() {
     const { name, value } = e.target;
     if (name === 'phone') {
       const cleanValue = value.replace(/[^0-9+\s]/g, '');
-      setFormData({ ...formData, [name]: cleanValue });
+      setFormData(prev => ({ ...prev, [name]: cleanValue }));
       return;
     }
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -196,10 +196,10 @@ function App() {
                     <td>{p.phone}</td>
                     <td><span style={{ fontSize: '12px', padding: '3px 6px', background: '#e9ecef', borderRadius: '4px' }}>{p.status}</span></td>
                     <td style={{ display: 'flex', gap: '5px' }}>
-                      <button onClick={() => handleSelectPartner(p)} style={{ cursor: 'pointer', padding: '4px 8px', background: '#f8f9fa', border: '1px solid #ccc', borderRadius: '4px' }}>
+                      <button type="button" onClick={() => handleSelectPartner(p)} style={{ cursor: 'pointer', padding: '4px 8px', background: '#f8f9fa', border: '1px solid #ccc', borderRadius: '4px' }}>
                         Kiválasztás
                       </button>
-                      <button onClick={() => handleDeletePartner(p.id)} style={{ cursor: 'pointer', padding: '4px 8px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px' }}>
+                      <button type="button" onClick={() => handleDeletePartner(p.id)} style={{ cursor: 'pointer', padding: '4px 8px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px' }}>
                         Törlés
                       </button>
                     </td>
@@ -229,7 +229,7 @@ function App() {
               <div style={{ marginBottom: '8px' }}>
                 <input type="text" placeholder="Státuszváltás megjegyzése / indoklása..." value={statusNote} onChange={(e) => setStatusNote(e.target.value)} style={{ padding: '8px', width: '96%' }}/>
               </div>
-              <button onClick={handleUpdateStatus} style={{ padding: '8px 14px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+              <button type="button" onClick={handleUpdateStatus} style={{ padding: '8px 14px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
                 Státusz frissítése és rögzítése
               </button>
             </div>
@@ -238,7 +238,7 @@ function App() {
               <h4>Új megjegyzés a falra</h4>
               <div style={{ display: 'flex', gap: '5px' }}>
                 <input type="text" placeholder="Írj egy megjegyzést..." value={plainNote} onChange={(e) => setPlainNote(e.target.value)} style={{ flex: 1, padding: '8px' }}/>
-                <button onClick={handleAddPlainNote} style={{ padding: '8px 14px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Rögzítés</button>
+                <button type="button" onClick={handleAddPlainNote} style={{ padding: '8px 14px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Rögzítés</button>
               </div>
             </div>
 
