@@ -6,16 +6,19 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://mini-crm-44xt.
 const STATUSES = [
   '1. Új lead',
   '2. Kapcsolatfelvétel alatt',
-  '3. Igényfelmérés',
-  '4. Ajánlatkészítés',
-  '5. Ajánlat kiküldve',
-  '6. Tárgyalás / Egyeztetés',
+  '3. Időpontegyeztetés alatt',
+  '4. Tárgyalás',
+  '5. Ajánlat kiküldés',
+  '6. Szerződésírás',
   '7. Döntésre vár',
-  '8. Szerződéskötés alatt',
-  '9. Sikeres - Szerződött',
-  '10. Halasztott / Felfüggesztett',
-  '11. Elveszített - Magas ár',
-  '12. Elveszített - Egyéb'
+  '8. Díjbekérő',
+  '9. Fizetésre vár',
+  '10. Számlaírás',
+  '11. Sablonírás',
+  '12. Átadásra vár',
+  '13. Teljesített',
+  '14. Elveszített '
+
 ];
 
 // Külön komponens az űrlapnak, hogy gépelés közben se veszítsen fókuszműködést
