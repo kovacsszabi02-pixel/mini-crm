@@ -18,10 +18,8 @@ const STATUSES = [
   '12. Átadásra vár',
   '13. Teljesített',
   '14. Elveszített '
-
 ];
 
-// Külön komponens az űrlapnak, hogy gépelés közben se veszítsen fókuszműködést
 function AddPartnerForm({ onPartnerAdded }) {
   const [formData, setFormData] = useState({
     company_name: '',
@@ -109,6 +107,7 @@ function AddPartnerForm({ onPartnerAdded }) {
 function App() {
   const [partners, setPartners] = useState([]);
   const [selectedPartner, setSelectedPartner] = useState(null);
+  const [editingPartner, setEditingPartner] = useState(null); // Szerkesztés alatt álló partner adatai
   const [logs, setLogs] = useState([]);
 
   const [newStatus, setNewStatus] = useState('');
@@ -194,6 +193,7 @@ function App() {
       });
       if (response.ok) {
         if (selectedPartner?.id === partnerId) setSelectedPartner(null);
+        if (editingPartner?.id === partnerId) setEditingPartner(null);
         fetchPartners();
       }
     } catch (err) {
@@ -201,12 +201,81 @@ function App() {
     }
   };
 
+  // Szerkesztés mentése
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!editingPartner) return;
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/partners/${editingPartner.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingPartner)
+      });
+
+      if (response.ok) {
+        const updated = await response.json();
+        if (selectedPartner?.id === updated.id) {
+          setSelectedPartner(updated);
+        }
+        setEditingPartner(null);
+        fetchPartners();
+      } else {
+        alert('Hiba történt a szerkesztés során.');
+      }
+    } catch (err) {
+      console.error('Hiba a szerkesztéskor:', err);
+    }
+  };
+
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '1400px', margin: '0 auto' }}>
       <h1>Mini CRM</h1>
 
-      {/* Elkülönített űrlap komponens */}
       <AddPartnerForm onPartnerAdded={fetchPartners} />
+
+      {/* Szerkesztő Modal / Panel, ha éppen szerkesztünk egy partnert */}
+      {editingPartner && (
+        <div style={{ background: '#fff3cd', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #ffeeba' }}>
+          <h3>Partner szerkesztése: {editingPartner.company_name}</h3>
+          <form onSubmit={handleSaveEdit}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév *</label><br/>
+                <input value={editingPartner.company_name} onChange={(e) => setEditingPartner({...editingPartner, company_name: e.target.value})} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+              </div>
+              <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kapcsolattartó *</label><br/>
+                <input value={editingPartner.contact_person} onChange={(e) => setEditingPartner({...editingPartner, contact_person: e.target.value})} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+              </div>
+              <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Telefonszám *</label><br/>
+                <input value={editingPartner.phone} onChange={(e) => setEditingPartner({...editingPartner, phone: e.target.value})} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+              </div>
+              <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email</label><br/>
+                <input type="email" value={editingPartner.email || ''} onChange={(e) => setEditingPartner({...editingPartner, email: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+              </div>
+              <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Árbevétel</label><br/>
+                <input value={editingPartner.revenue || ''} onChange={(e) => setEditingPartner({...editingPartner, revenue: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+              </div>
+              <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Adószám</label><br/>
+                <input value={editingPartner.tax_number || ''} onChange={(e) => setEditingPartner({...editingPartner, tax_number: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+              </div>
+              <div style={{ flex: '1 1 48%', minWidth: '300px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Számlázási cím</label><br/>
+                <input value={editingPartner.billing_address || ''} onChange={(e) => setEditingPartner({...editingPartner, billing_address: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+              </div>
+            </div>
+            <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+              <button type="submit" style={{ padding: '8px 16px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Mentés</button>
+              <button type="button" onClick={() => setEditingPartner(null)} style={{ padding: '8px 16px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Mégse</button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
         <div style={{ flex: '1.2 1 400px' }}>
@@ -234,6 +303,9 @@ function App() {
                     <td style={{ display: 'flex', gap: '5px' }}>
                       <button type="button" onClick={() => handleSelectPartner(p)} style={{ cursor: 'pointer', padding: '4px 8px', background: '#f8f9fa', border: '1px solid #ccc', borderRadius: '4px' }}>
                         Kiválasztás
+                      </button>
+                      <button type="button" onClick={() => setEditingPartner(p)} style={{ cursor: 'pointer', padding: '4px 8px', background: '#ffc107', border: '1px solid #e0a800', borderRadius: '4px', fontWeight: 'bold' }}>
+                        Szerkesztés
                       </button>
                       <button type="button" onClick={() => handleDeletePartner(p.id)} style={{ cursor: 'pointer', padding: '4px 8px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px' }}>
                         Törlés
@@ -286,7 +358,7 @@ function App() {
                 logs.map((log) => (
                   <li key={log.id} style={{ background: '#fff', border: '1px solid #eee', padding: '10px', marginBottom: '8px', borderRadius: '4px' }}>
                     <strong>{log.user_name}</strong> <span style={{ color: '#666', fontSize: '12px', marginLeft: '8px' }}>{new Date(log.created_at).toLocaleString()}</span>
-                    <div style={{ marginTop: '5px' }}>{log.note}</div>
+                    <div style={{ marginTop: '5px'}>{log.note}</div>
                   </li>
                 ))
               )}
