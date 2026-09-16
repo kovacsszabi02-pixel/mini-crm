@@ -18,15 +18,8 @@ const STATUSES = [
   '12. Elveszített - Egyéb'
 ];
 
-function App() {
-  const [partners, setPartners] = useState([]);
-  const [selectedPartner, setSelectedPartner] = useState(null);
-  const [logs, setLogs] = useState([]);
-
-  const [newStatus, setNewStatus] = useState('');
-  const [statusNote, setStatusNote] = useState('');
-  const [plainNote, setPlainNote] = useState('');
-
+// Külön komponens az űrlapnak, hogy gépelés közben se veszítsen fókuszműködést
+function AddPartnerForm({ onPartnerAdded }) {
   const [formData, setFormData] = useState({
     company_name: '',
     contact_person: '',
@@ -36,6 +29,88 @@ function App() {
     tax_number: '',
     billing_address: ''
   });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'phone') {
+      const cleanValue = value.replace(/[^0-9+\s]/g, '');
+      setFormData(prev => ({ ...prev, [name]: cleanValue }));
+      return;
+    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/partners`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      if (response.ok) {
+        setFormData({
+          company_name: '', contact_person: '', phone: '', email: '', revenue: '', tax_number: '', billing_address: ''
+        });
+        onPartnerAdded();
+      } else {
+        alert('Hiba történt a partner rögzítésekor.');
+      }
+    } catch (err) {
+      console.error('Hiba a partner mentésekor:', err);
+    }
+  };
+
+  return (
+    <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #ddd' }}>
+      <h3>Új partner rögzítése</h3>
+      <form onSubmit={handleSubmit}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév *</label><br/>
+            <input name="company_name" value={formData.company_name} onChange={handleChange} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+          </div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kapcsolattartó *</label><br/>
+            <input name="contact_person" value={formData.contact_person} onChange={handleChange} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+          </div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Telefonszám * (csak számok)</label><br/>
+            <input name="phone" value={formData.phone} onChange={handleChange} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+          </div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email</label><br/>
+            <input name="email" type="email" value={formData.email} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+          </div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Árbevétel</label><br/>
+            <input name="revenue" value={formData.revenue} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+          </div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Adószám</label><br/>
+            <input name="tax_number" value={formData.tax_number} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+          </div>
+          <div style={{ flex: '1 1 48%', minWidth: '300px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Számlázási cím</label><br/>
+            <input name="billing_address" value={formData.billing_address} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+          </div>
+        </div>
+        <div style={{ marginTop: '15px' }}>
+          <button type="submit" style={{ padding: '10px 24px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Partner Rögzítése</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function App() {
+  const [partners, setPartners] = useState([]);
+  const [selectedPartner, setSelectedPartner] = useState(null);
+  const [logs, setLogs] = useState([]);
+
+  const [newStatus, setNewStatus] = useState('');
+  const [statusNote, setStatusNote] = useState('');
+  const [plainNote, setPlainNote] = useState('');
 
   const fetchPartners = async () => {
     try {
@@ -67,37 +142,6 @@ function App() {
     setStatusNote('');
     setPlainNote('');
     fetchLogs(partner.id);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === 'phone') {
-      const cleanValue = value.replace(/[^0-9+\s]/g, '');
-      setFormData(prev => ({ ...prev, [name]: cleanValue }));
-      return;
-    }
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/partners`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      if (response.ok) {
-        setFormData({
-          company_name: '', contact_person: '', phone: '', email: '', revenue: '', tax_number: '', billing_address: ''
-        });
-        fetchPartners();
-      } else {
-        alert('Hiba történt a partner rögzítésekor.');
-      }
-    } catch (err) {
-      console.error('Hiba a partner mentésekor:', err);
-    }
   };
 
   const handleUpdateStatus = async () => {
@@ -158,23 +202,8 @@ function App() {
     <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '1400px', margin: '0 auto' }}>
       <h1>Mini CRM</h1>
 
-      <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #ddd' }}>
-        <h3>Új partner rögzítése</h3>
-        <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév *</label><br/><input name="company_name" value={formData.company_name} onChange={handleChange} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
-            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kapcsolattartó *</label><br/><input name="contact_person" value={formData.contact_person} onChange={handleChange} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
-            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Telefonszám * (csak számok)</label><br/><input name="phone" value={formData.phone} onChange={handleChange} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
-            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email</label><br/><input name="email" type="email" value={formData.email} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
-            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Árbevétel</label><br/><input name="revenue" value={formData.revenue} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
-            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Adószám</label><br/><input name="tax_number" value={formData.tax_number} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
-            <div style={{ flex: '1 1 48%', minWidth: '300px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Számlázási cím</label><br/><input name="billing_address" value={formData.billing_address} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/></div>
-          </div>
-          <div style={{ marginTop: '15px' }}>
-            <button type="submit" style={{ padding: '10px 24px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Partner Rögzítése</button>
-          </div>
-        </form>
-      </div>
+      {/* Elkülönített űrlap komponens */}
+      <AddPartnerForm onPartnerAdded={fetchPartners} />
 
       <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
         <div style={{ flex: '1.2 1 400px' }}>
