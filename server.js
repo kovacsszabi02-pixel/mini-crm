@@ -55,7 +55,31 @@ app.post('/api/partners', async (req, res) => {
     }
 });
 
-// 3. Státusz frissítése
+// 3. Partner adatainak szerkesztése (ÚJ)
+app.put('/api/partners/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, status } = req.body;
+
+        const updatedPartner = await pool.query(
+            `UPDATE partners 
+             SET company_name = $1, contact_person = $2, phone = $3, email = $4, revenue = $5, tax_number = $6, billing_address = $7, status = $8 
+             WHERE id = $9 RETURNING *`,
+            [company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', status, id]
+        );
+
+        if (updatedPartner.rows.length === 0) {
+            return res.status(404).json({ error: 'A partner nem található.' });
+        }
+
+        res.json(updatedPartner.rows[0]);
+    } catch (err) {
+        console.error('Hiba a partner szerkesztésekor:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 4. Státusz frissítése
 app.put('/api/partners/:id/status', async (req, res) => {
     try {
         const { id } = req.params;
@@ -85,7 +109,7 @@ app.put('/api/partners/:id/status', async (req, res) => {
     }
 });
 
-// 4. Logok lekérdezése
+// 5. Logok lekérdezése
 app.get('/api/partners/:id/logs', async (req, res) => {
     try {
         const { id } = req.params;
@@ -97,7 +121,7 @@ app.get('/api/partners/:id/logs', async (req, res) => {
     }
 });
 
-// 5. Megjegyzés rögzítése
+// 6. Megjegyzés rögzítése
 app.post('/api/partners/:id/logs', async (req, res) => {
     try {
         const { id } = req.params;
@@ -115,7 +139,7 @@ app.post('/api/partners/:id/logs', async (req, res) => {
     }
 });
 
-// 6. Partner törlése
+// 7. Partner törlése
 app.delete('/api/partners/:id', async (req, res) => {
     try {
         const { id } = req.params;
