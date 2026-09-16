@@ -133,3 +133,16 @@ app.listen(PORT, () => {
 });
 
 setInterval(() => {}, 1000000);
+pool.query(`
+  CREATE TABLE IF NOT EXISTS partners (
+    id SERIAL PRIMARY KEY,
+    company_name TEXT NOT NULL,
+    contact_person TEXT,
+    phone TEXT,
+    status TEXT
+  )
+`).then(() => {
+  console.log("✔ Partners tábla sikeresen ellenőrizve/létrehozva.");
+}).catch(err => {
+  console.error("❌ Hiba a tábla létrehozásakor:", err);
+});
