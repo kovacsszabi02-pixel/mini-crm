@@ -7,8 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Tesztelő log, hogy lássuk, ez a frissített fájl fut-e
-console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT!");
+console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (ÚJ FUNKCIÓKKAL)!");
 
 process.on('uncaughtException', (err) => {
     console.error('KIVÉTELES HIBA:', err);
@@ -31,12 +30,12 @@ app.get('/api/partners', async (req, res) => {
 // 2. Új partner hozzáadása
 app.post('/api/partners', async (req, res) => {
     try {
-        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address } = req.body;
+        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, manager, task } = req.body;
 
         const newPartner = await pool.query(
             `INSERT INTO partners 
-            (company_name, contact_person, phone, email, revenue, tax_number, billing_address, status) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+            (company_name, contact_person, phone, email, revenue, tax_number, billing_address, status, manager, task) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
             [
               company_name, 
               contact_person, 
@@ -45,7 +44,9 @@ app.post('/api/partners', async (req, res) => {
               revenue || '', 
               tax_number || '', 
               billing_address || '', 
-              '1. Új lead'
+              '1. Új lead',
+              manager || '',
+              task || ''
             ]
         );
         res.json(newPartner.rows[0]);
@@ -55,17 +56,17 @@ app.post('/api/partners', async (req, res) => {
     }
 });
 
-// 3. Partner adatainak szerkesztése (ÚJ)
+// 3. Partner adatainak szerkesztése
 app.put('/api/partners/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, status } = req.body;
+        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, status, manager, task } = req.body;
 
         const updatedPartner = await pool.query(
             `UPDATE partners 
-             SET company_name = $1, contact_person = $2, phone = $3, email = $4, revenue = $5, tax_number = $6, billing_address = $7, status = $8 
-             WHERE id = $9 RETURNING *`,
-            [company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', status, id]
+             SET company_name = $1, contact_person = $2, phone = $3, email = $4, revenue = $5, tax_number = $6, billing_address = $7, status = $8, manager = $9, task = $10 
+             WHERE id = $11 RETURNING *`,
+            [company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', status, manager || '', task || '', id]
         );
 
         if (updatedPartner.rows.length === 0) {
@@ -109,7 +110,32 @@ app.put('/api/partners/:id/status', async (req, res) => {
     }
 });
 
-// 5. Logok lekérdezése
+// 5. Feladat végleges lezárása
+app.put('/api/partners/:id/task-complete', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const partnerRes = await pool.query('SELECT task FROM partners WHERE id = $1', [id]);
+        const taskName = partnerRes.rows[0] ? partnerRes.rows[0].task : 'Ismeretlen feladat';
+
+        const updatedPartner = await pool.query(
+            'UPDATE partners SET task_completed = true WHERE id = $1 RETURNING *',
+            [id]
+        );
+
+        await pool.query(
+            'INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)',
+            [id, 'Admin', 'FELADAT KÉSZ', `A következő feladat lezárva: ${taskName}`]
+        );
+
+        res.json(updatedPartner.rows[0]);
+    } catch (err) {
+        console.error('Hiba a feladat lezárásakor:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 6. Logok lekérdezése
 app.get('/api/partners/:id/logs', async (req, res) => {
     try {
         const { id } = req.params;
@@ -121,7 +147,7 @@ app.get('/api/partners/:id/logs', async (req, res) => {
     }
 });
 
-// 6. Megjegyzés rögzítése
+// 7. Megjegyzés rögzítése
 app.post('/api/partners/:id/logs', async (req, res) => {
     try {
         const { id } = req.params;
@@ -139,7 +165,7 @@ app.post('/api/partners/:id/logs', async (req, res) => {
     }
 });
 
-// 7. Partner törlése
+// 8. Partner törlése
 app.delete('/api/partners/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -171,6 +197,9 @@ pool.query(`
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS revenue TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS tax_number TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS billing_address TEXT;
+  ALTER TABLE partners ADD COLUMN IF NOT EXISTS manager TEXT;
+  ALTER TABLE partners ADD COLUMN IF NOT EXISTS task TEXT;
+  ALTER TABLE partners ADD COLUMN IF NOT EXISTS task_completed BOOLEAN DEFAULT false;
 
   CREATE TABLE IF NOT EXISTS audit_logs (
     id SERIAL PRIMARY KEY,

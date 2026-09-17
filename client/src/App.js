@@ -28,7 +28,9 @@ function AddPartnerForm({ onPartnerAdded }) {
     email: '',
     revenue: '',
     tax_number: '',
-    billing_address: ''
+    billing_address: '',
+    manager: '',
+    task: ''
   });
 
   const handleChange = (e) => {
@@ -51,7 +53,7 @@ function AddPartnerForm({ onPartnerAdded }) {
       });
       if (response.ok) {
         setFormData({
-          company_name: '', contact_person: '', phone: '', email: '', revenue: '', tax_number: '', billing_address: ''
+          company_name: '', contact_person: '', phone: '', email: '', revenue: '', tax_number: '', billing_address: '', manager: '', task: ''
         });
         onPartnerAdded();
       } else {
@@ -76,12 +78,20 @@ function AddPartnerForm({ onPartnerAdded }) {
             <input name="contact_person" value={formData.contact_person} onChange={handleChange} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
           </div>
           <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
-            <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Telefonszám * (csak számok)</label><br/>
+            <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Telefonszám *</label><br/>
             <input name="phone" value={formData.phone} onChange={handleChange} required style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
           </div>
           <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
             <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email</label><br/>
             <input name="email" type="email" value={formData.email} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+          </div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kezelő</label><br/>
+            <input name="manager" value={formData.manager} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+          </div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Feladatkiírás</label><br/>
+            <input name="task" value={formData.task} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
           </div>
           <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
             <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Árbevétel</label><br/>
@@ -183,6 +193,26 @@ function App() {
     }
   };
 
+  const handleCompleteTask = async () => {
+    if (!selectedPartner || selectedPartner.task_completed) return;
+    const isConfirmed = window.confirm("Biztosan készre jelented a feladatot? Ezt később nem módosíthatod!");
+    if (!isConfirmed) return;
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/task-complete`, {
+        method: 'PUT'
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        setSelectedPartner(updated);
+        fetchPartners();
+        fetchLogs(updated.id);
+      }
+    } catch (err) {
+      console.error('Hiba a feladat lezárásakor:', err);
+    }
+  };
+
   const handleDeletePartner = async (partnerId) => {
     const isConfirmed = window.confirm("Biztosan törölni akarod ezt a partnert?");
     if (!isConfirmed) return;
@@ -255,6 +285,14 @@ function App() {
                 <input type="email" value={editingPartner.email || ''} onChange={(e) => setEditingPartner({...editingPartner, email: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
               </div>
               <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kezelő</label><br/>
+                <input value={editingPartner.manager || ''} onChange={(e) => setEditingPartner({...editingPartner, manager: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+              </div>
+              <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Feladatkiírás</label><br/>
+                <input value={editingPartner.task || ''} onChange={(e) => setEditingPartner({...editingPartner, task: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
+              </div>
+              <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
                 <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Árbevétel</label><br/>
                 <input value={editingPartner.revenue || ''} onChange={(e) => setEditingPartner({...editingPartner, revenue: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
               </div>
@@ -320,13 +358,31 @@ function App() {
           <div style={{ flex: '1 1 350px', border: '1px solid #ddd', padding: '15px', borderRadius: '8px', background: '#fafafa' }}>
             <h2>Partner Fal: {selectedPartner.company_name}</h2>
             <p style={{ margin: '5px 0' }}><strong>Kapcsolattartó:</strong> {selectedPartner.contact_person} ({selectedPartner.phone})</p>
+            <p style={{ margin: '5px 0' }}><strong>Email:</strong> {selectedPartner.email || '-'}</p>
+            <p style={{ margin: '5px 0' }}><strong>Kezelő:</strong> {selectedPartner.manager || '-'}</p>
             <p style={{ margin: '5px 0' }}><strong>Adószám:</strong> {selectedPartner.tax_number || '-'}</p>
             <p style={{ margin: '5px 0' }}><strong>Számlázási cím:</strong> {selectedPartner.billing_address || '-'}</p>
             <p style={{ margin: '5px 0' }}><strong>Árbevétel:</strong> {selectedPartner.revenue || '-'}</p>
             <hr style={{ margin: '15px 0' }} />
 
+            <div style={{ background: '#e2e3e5', padding: '12px', borderRadius: '6px', marginBottom: '15px', border: '1px solid #d6d8db' }}>
+              <h4 style={{ margin: '0 0 8px 0' }}>Aktuális Feladat: {selectedPartner.task || 'Nincs kiosztott feladat'}</h4>
+              {selectedPartner.task && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: selectedPartner.task_completed ? 'not-allowed' : 'pointer', color: selectedPartner.task_completed ? '#6c757d' : '#000' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedPartner.task_completed} 
+                    onChange={handleCompleteTask} 
+                    disabled={selectedPartner.task_completed} 
+                    style={{ width: '18px', height: '18px' }}
+                  />
+                  <strong>{selectedPartner.task_completed ? 'FELADAT KÉSZ (Véglegesítve)' : 'Jelöld be, ha elkészült (Visszavonhatatlan!)'}</strong>
+                </label>
+              )}
+            </div>
+
             <div style={{ background: '#fff', padding: '12px', borderRadius: '6px', border: '1px solid #eee', marginBottom: '15px' }}>
-              <h4>Státusz módosítása (12 szint)</h4>
+              <h4>Státusz módosítása (14 szint)</h4>
               <div style={{ marginBottom: '8px' }}>
                 <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} style={{ padding: '8px', width: '100%', boxSizing: 'border-box' }}>
                   {STATUSES.map((st) => (<option key={st} value={st}>{st}</option>))}
