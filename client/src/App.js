@@ -63,6 +63,7 @@ function App() {
   const [partners, setPartners] = useState([]);
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [editingPartner, setEditingPartner] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   
   const [logs, setLogs] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -162,6 +163,18 @@ function App() {
     }
   };
 
+  // Kereső logika
+  const filteredPartners = partners.filter(p => {
+    const term = searchTerm.toLowerCase();
+    return (
+      (p.company_name?.toLowerCase() || '').includes(term) ||
+      (p.contact_person?.toLowerCase() || '').includes(term) ||
+      (p.phone?.toLowerCase() || '').includes(term) ||
+      (p.email?.toLowerCase() || '').includes(term) ||
+      (p.tax_number?.toLowerCase() || '').includes(term)
+    );
+  });
+
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '1400px', margin: '0 auto' }}>
       <h1>Mini CRM</h1>
@@ -194,13 +207,24 @@ function App() {
       <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
         <div style={{ flex: '1.2 1 400px' }}>
           <h2>Partnerek Listája</h2>
+          
+          <div style={{ marginBottom: '15px' }}>
+            <input 
+              type="text" 
+              placeholder="🔍 Keresés (cégnév, kapcsolattartó, telefon, email, adószám)..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ width: '100%', padding: '10px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }}
+            />
+          </div>
+
           <table border="1" cellPadding="8" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
             <thead style={{ background: '#eee' }}>
               <tr><th>Cégnév</th><th>Kapcsolattartó</th><th>Telefon</th><th>Státusz</th><th>Művelet</th></tr>
             </thead>
             <tbody>
-              {partners.length === 0 ? (<tr><td colSpan="5">Még nincs rögzített partner.</td></tr>) : (
-                partners.map((p) => (
+              {filteredPartners.length === 0 ? (<tr><td colSpan="5">Nincs a keresésnek megfelelő partner.</td></tr>) : (
+                filteredPartners.map((p) => (
                   <tr key={p.id} style={{ background: selectedPartner?.id === p.id ? '#e6f7ff' : 'transparent' }}>
                     <td><strong>{p.company_name}</strong></td><td>{p.contact_person}</td><td>{p.phone}</td>
                     <td><span style={{ fontSize: '12px', padding: '3px 6px', background: '#e9ecef', borderRadius: '4px' }}>{p.status}</span></td>
@@ -224,6 +248,7 @@ function App() {
                 <p style={{ margin: '5px 0' }}><strong>Kapcsolattartó:</strong> {selectedPartner.contact_person} ({selectedPartner.phone})</p>
                 <p style={{ margin: '5px 0' }}><strong>Email:</strong> {selectedPartner.email || '-'}</p>
                 <p style={{ margin: '5px 0' }}><strong>Kezelő:</strong> {selectedPartner.manager || '-'}</p>
+                <p style={{ margin: '5px 0' }}><strong>Adószám:</strong> {selectedPartner.tax_number || '-'}</p>
               </div>
               <div style={{ background: '#e6f2ff', padding: '10px', borderRadius: '6px', border: '1px solid #b3d7ff' }}>
                 <h4 style={{ margin: '0 0 5px 0', color: '#004085' }}>Elfogadott árajánlat:</h4>
