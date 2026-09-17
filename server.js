@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (DOKUMENTUMOKKAL ÉS AJÁNLATTAL)!");
+console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (WEBSZÁJT, HATÁRIDŐK, 15 STÁTUSZ)!");
 
 process.on('uncaughtException', (err) => {
     console.error('KIVÉTELES HIBA:', err);
@@ -30,14 +30,14 @@ app.get('/api/partners', async (req, res) => {
 // 2. Új partner hozzáadása
 app.post('/api/partners', async (req, res) => {
     try {
-        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, manager, accepted_offer } = req.body;
+        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, manager, accepted_offer, website } = req.body;
 
         const newPartner = await pool.query(
             `INSERT INTO partners 
-            (company_name, contact_person, phone, email, revenue, tax_number, billing_address, status, manager, accepted_offer) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+            (company_name, contact_person, phone, email, revenue, tax_number, billing_address, status, manager, accepted_offer, website) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
             [
-              company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', '1. Új lead', manager || '', accepted_offer || ''
+              company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', '1. Új lead', manager || '', accepted_offer || '', website || ''
             ]
         );
         res.json(newPartner.rows[0]);
@@ -51,13 +51,13 @@ app.post('/api/partners', async (req, res) => {
 app.put('/api/partners/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, status, manager, accepted_offer } = req.body;
+        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, status, manager, accepted_offer, website } = req.body;
 
         const updatedPartner = await pool.query(
             `UPDATE partners 
-             SET company_name = $1, contact_person = $2, phone = $3, email = $4, revenue = $5, tax_number = $6, billing_address = $7, status = $8, manager = $9, accepted_offer = $10
-             WHERE id = $11 RETURNING *`,
-            [company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', status, manager || '', accepted_offer || '', id]
+             SET company_name = $1, contact_person = $2, phone = $3, email = $4, revenue = $5, tax_number = $6, billing_address = $7, status = $8, manager = $9, accepted_offer = $10, website = $11
+             WHERE id = $12 RETURNING *`,
+            [company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', status, manager || '', accepted_offer || '', website || '', id]
         );
 
         if (updatedPartner.rows.length === 0) return res.status(404).json({ error: 'A partner nem található.' });
@@ -99,8 +99,17 @@ app.get('/api/partners/:id/tasks', async (req, res) => {
 
 app.post('/api/partners/:id/tasks', async (req, res) => {
     try {
-        const newTask = await pool.query('INSERT INTO tasks (partner_id, description) VALUES ($1, $2) RETURNING *', [req.params.id, req.body.description]);
-        await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', [req.params.id, 'Admin', 'ÚJ FELADAT', `Kiosztott feladat: ${req.body.description}`]);
+        const { description, due_date } = req.body;
+        const newTask = await pool.query(
+            'INSERT INTO tasks (partner_id, description, due_date) VALUES ($1, $2, $3) RETURNING *', 
+            [req.params.id, description, due_date || null]
+        );
+        
+        const dateNote = due_date ? ` (Határidő: ${due_date})` : '';
+        await pool.query(
+            'INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', 
+            [req.params.id, 'Admin', 'ÚJ FELADAT', `Kiosztott feladat: ${description}${dateNote}`]
+        );
         res.json(newTask.rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -189,12 +198,14 @@ pool.query(`
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS billing_address TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS manager TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS accepted_offer TEXT;
+  ALTER TABLE partners ADD COLUMN IF NOT EXISTS website TEXT;
   
   CREATE TABLE IF NOT EXISTS tasks (
     id SERIAL PRIMARY KEY,
     partner_id INT,
     description TEXT NOT NULL,
     is_completed BOOLEAN DEFAULT false,
+    due_date TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
