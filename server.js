@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (DUE_DATE FIX-SZEL)!");
+console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (PAGINÁCIÓ, SZÉKHELY, LEJÁRAT FIGYELÉS)!");
 
 process.on('uncaughtException', (err) => {
     console.error('KIVÉTELES HIBA:', err);
@@ -30,14 +30,14 @@ app.get('/api/partners', async (req, res) => {
 // 2. Új partner hozzáadása
 app.post('/api/partners', async (req, res) => {
     try {
-        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, manager, accepted_offer, website } = req.body;
+        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, headquarters, manager, accepted_offer, website } = req.body;
 
         const newPartner = await pool.query(
             `INSERT INTO partners 
-            (company_name, contact_person, phone, email, revenue, tax_number, billing_address, status, manager, accepted_offer, website) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+            (company_name, contact_person, phone, email, revenue, tax_number, billing_address, headquarters, status, manager, accepted_offer, website) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
             [
-              company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', '1. Új lead', manager || '', accepted_offer || '', website || ''
+              company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', headquarters || '', '1. Új lead', manager || '', accepted_offer || '', website || ''
             ]
         );
         res.json(newPartner.rows[0]);
@@ -51,13 +51,13 @@ app.post('/api/partners', async (req, res) => {
 app.put('/api/partners/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, status, manager, accepted_offer, website } = req.body;
+        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, headquarters, status, manager, accepted_offer, website } = req.body;
 
         const updatedPartner = await pool.query(
             `UPDATE partners 
-             SET company_name = $1, contact_person = $2, phone = $3, email = $4, revenue = $5, tax_number = $6, billing_address = $7, status = $8, manager = $9, accepted_offer = $10, website = $11
-             WHERE id = $12 RETURNING *`,
-            [company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', status, manager || '', accepted_offer || '', website || '', id]
+             SET company_name = $1, contact_person = $2, phone = $3, email = $4, revenue = $5, tax_number = $6, billing_address = $7, headquarters = $8, status = $9, manager = $10, accepted_offer = $11, website = $12
+             WHERE id = $13 RETURNING *`,
+            [company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', headquarters || '', status, manager || '', accepted_offer || '', website || '', id]
         );
 
         if (updatedPartner.rows.length === 0) return res.status(404).json({ error: 'A partner nem található.' });
@@ -89,10 +89,27 @@ app.put('/api/partners/:id/status', async (req, res) => {
     }
 });
 
-// 5. Feladatok kezelése (GET, POST, PUT)
+// 5. Feladatok lekérdezése (Lejárat automatikus ellenőrzése)
 app.get('/api/partners/:id/tasks', async (req, res) => {
     try {
-        const tasks = await pool.query('SELECT * FROM tasks WHERE partner_id = $1 ORDER BY id ASC', [req.params.id]);
+        const { id } = req.params;
+        const tasks = await pool.query('SELECT * FROM tasks WHERE partner_id = $1 ORDER BY id ASC', [id]);
+        
+        const today = new Date().toISOString().split('T')[0];
+        let hasNewOverdue = false;
+
+        for (let task of tasks.rows) {
+            if (!task.is_completed && task.due_date && task.due_date < today && !task.flagged_overdue) {
+                await pool.query('UPDATE tasks SET flagged_overdue = true WHERE id = $1', [task.id]);
+                await pool.query(
+                    'INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', 
+                    [id, 'Rendszer', 'LEJÁRT FELADAT', `A következő feladat határideje lejárt és nincs kész: ${task.description} (${task.due_date})`]
+                );
+                task.flagged_overdue = true;
+                hasNewOverdue = true;
+            }
+        }
+
         res.json(tasks.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -111,10 +128,7 @@ app.post('/api/partners/:id/tasks', async (req, res) => {
             [req.params.id, 'Admin', 'ÚJ FELADAT', `Kiosztott feladat: ${description}${dateNote}`]
         );
         res.json(newTask.rows[0]);
-    } catch (err) { 
-        console.error('Hiba feladat mentésekor:', err.message);
-        res.status(500).json({ error: err.message }); 
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/partners/:partnerId/tasks/:taskId/complete', async (req, res) => {
@@ -127,7 +141,7 @@ app.put('/api/partners/:partnerId/tasks/:taskId/complete', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 6. Dokumentumok kezelése (GET, POST, DELETE)
+// 6. Dokumentumok kezelése
 app.get('/api/partners/:id/documents', async (req, res) => {
     try {
         const docs = await pool.query('SELECT * FROM documents WHERE partner_id = $1 ORDER BY created_at DESC', [req.params.id]);
@@ -199,6 +213,7 @@ pool.query(`
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS revenue TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS tax_number TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS billing_address TEXT;
+  ALTER TABLE partners ADD COLUMN IF NOT EXISTS headquarters TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS manager TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS accepted_offer TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS website TEXT;
@@ -208,10 +223,12 @@ pool.query(`
     partner_id INT,
     description TEXT NOT NULL,
     is_completed BOOLEAN DEFAULT false,
+    due_date TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
   ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_date TEXT;
+  ALTER TABLE tasks ADD COLUMN IF NOT EXISTS flagged_overdue BOOLEAN DEFAULT false;
 
   CREATE TABLE IF NOT EXISTS documents (
     id SERIAL PRIMARY KEY,
