@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (WEBSZÁJT, HATÁRIDŐK, 15 STÁTUSZ)!");
+console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (DUE_DATE FIX-SZEL)!");
 
 process.on('uncaughtException', (err) => {
     console.error('KIVÉTELES HIBA:', err);
@@ -111,7 +111,10 @@ app.post('/api/partners/:id/tasks', async (req, res) => {
             [req.params.id, 'Admin', 'ÚJ FELADAT', `Kiosztott feladat: ${description}${dateNote}`]
         );
         res.json(newTask.rows[0]);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('Hiba feladat mentésekor:', err.message);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 app.put('/api/partners/:partnerId/tasks/:taskId/complete', async (req, res) => {
@@ -182,7 +185,7 @@ app.listen(PORT, () => console.log(`A szerver stabilan fut a http://localhost:${
 
 setInterval(() => {}, 1000000);
 
-// Adatbázis sémák
+// Adatbázis sémák és hiányzó oszlopok biztosítása
 pool.query(`
   CREATE TABLE IF NOT EXISTS partners (
     id SERIAL PRIMARY KEY,
@@ -205,9 +208,10 @@ pool.query(`
     partner_id INT,
     description TEXT NOT NULL,
     is_completed BOOLEAN DEFAULT false,
-    due_date TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
+
+  ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_date TEXT;
 
   CREATE TABLE IF NOT EXISTS documents (
     id SERIAL PRIMARY KEY,
