@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (ÚJ FUNKCIÓKKAL)!");
+console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (DINAMIKUS FELADATOKKAL)!");
 
 process.on('uncaughtException', (err) => {
     console.error('KIVÉTELES HIBA:', err);
@@ -30,12 +30,12 @@ app.get('/api/partners', async (req, res) => {
 // 2. Új partner hozzáadása
 app.post('/api/partners', async (req, res) => {
     try {
-        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, manager, task } = req.body;
+        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, manager } = req.body;
 
         const newPartner = await pool.query(
             `INSERT INTO partners 
-            (company_name, contact_person, phone, email, revenue, tax_number, billing_address, status, manager, task) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+            (company_name, contact_person, phone, email, revenue, tax_number, billing_address, status, manager) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
             [
               company_name, 
               contact_person, 
@@ -45,8 +45,7 @@ app.post('/api/partners', async (req, res) => {
               tax_number || '', 
               billing_address || '', 
               '1. Új lead',
-              manager || '',
-              task || ''
+              manager || ''
             ]
         );
         res.json(newPartner.rows[0]);
@@ -60,13 +59,13 @@ app.post('/api/partners', async (req, res) => {
 app.put('/api/partners/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, status, manager, task } = req.body;
+        const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, status, manager } = req.body;
 
         const updatedPartner = await pool.query(
             `UPDATE partners 
-             SET company_name = $1, contact_person = $2, phone = $3, email = $4, revenue = $5, tax_number = $6, billing_address = $7, status = $8, manager = $9, task = $10 
-             WHERE id = $11 RETURNING *`,
-            [company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', status, manager || '', task || '', id]
+             SET company_name = $1, contact_person = $2, phone = $3, email = $4, revenue = $5, tax_number = $6, billing_address = $7, status = $8, manager = $9
+             WHERE id = $10 RETURNING *`,
+            [company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', status, manager || '', id]
         );
 
         if (updatedPartner.rows.length === 0) {
@@ -110,32 +109,67 @@ app.put('/api/partners/:id/status', async (req, res) => {
     }
 });
 
-// 5. Feladat végleges lezárása
-app.put('/api/partners/:id/task-complete', async (req, res) => {
+// 5. Feladatok lekérdezése
+app.get('/api/partners/:id/tasks', async (req, res) => {
     try {
         const { id } = req.params;
-        
-        const partnerRes = await pool.query('SELECT task FROM partners WHERE id = $1', [id]);
-        const taskName = partnerRes.rows[0] ? partnerRes.rows[0].task : 'Ismeretlen feladat';
+        const tasks = await pool.query('SELECT * FROM tasks WHERE partner_id = $1 ORDER BY id ASC', [id]);
+        res.json(tasks.rows);
+    } catch (err) {
+        console.error('Hiba feladatok lekérésekor:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
 
-        const updatedPartner = await pool.query(
-            'UPDATE partners SET task_completed = true WHERE id = $1 RETURNING *',
-            [id]
+// 6. Új feladat kiírása
+app.post('/api/partners/:id/tasks', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { description } = req.body;
+        
+        const newTask = await pool.query(
+            'INSERT INTO tasks (partner_id, description) VALUES ($1, $2) RETURNING *',
+            [id, description]
         );
 
         await pool.query(
             'INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)',
-            [id, 'Admin', 'FELADAT KÉSZ', `A következő feladat lezárva: ${taskName}`]
+            [id, 'Admin', 'ÚJ FELADAT', `Kiosztott feladat: ${description}`]
+        );
+        
+        res.json(newTask.rows[0]);
+    } catch (err) {
+        console.error('Hiba feladat kiírásakor:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 7. Feladat végleges lezárása
+app.put('/api/partners/:partnerId/tasks/:taskId/complete', async (req, res) => {
+    try {
+        const { partnerId, taskId } = req.params;
+        
+        const updatedTask = await pool.query(
+            'UPDATE tasks SET is_completed = true WHERE id = $1 RETURNING *',
+            [taskId]
         );
 
-        res.json(updatedPartner.rows[0]);
+        if (updatedTask.rows.length > 0) {
+            const taskDesc = updatedTask.rows[0].description;
+            await pool.query(
+                'INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)',
+                [partnerId, 'Admin', 'FELADAT KÉSZ', `Feladat lezárva: ${taskDesc}`]
+            );
+        }
+
+        res.json(updatedTask.rows[0]);
     } catch (err) {
         console.error('Hiba a feladat lezárásakor:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
-// 6. Logok lekérdezése
+// 8. Logok lekérdezése
 app.get('/api/partners/:id/logs', async (req, res) => {
     try {
         const { id } = req.params;
@@ -147,7 +181,7 @@ app.get('/api/partners/:id/logs', async (req, res) => {
     }
 });
 
-// 7. Megjegyzés rögzítése
+// 9. Megjegyzés rögzítése
 app.post('/api/partners/:id/logs', async (req, res) => {
     try {
         const { id } = req.params;
@@ -165,12 +199,13 @@ app.post('/api/partners/:id/logs', async (req, res) => {
     }
 });
 
-// 8. Partner törlése
+// 10. Partner törlése
 app.delete('/api/partners/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        await pool.query('DELETE FROM tasks WHERE partner_id = $1', [id]);
         await pool.query('DELETE FROM partners WHERE id = $1', [id]);
-        res.json({ message: 'Partner és a hozzá tartozó logok törölve.' });
+        res.json({ message: 'Partner és a hozzá tartozó adatok törölve.' });
     } catch (err) {
         console.error('Hiba a törléskor:', err.message);
         res.status(500).json({ error: err.message });
@@ -198,8 +233,18 @@ pool.query(`
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS tax_number TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS billing_address TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS manager TEXT;
+  
+  -- Régi feladat oszlopokat megtartjuk, hogy ne törjön el az adatbázis, de már nem ezt használjuk
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS task TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS task_completed BOOLEAN DEFAULT false;
+
+  CREATE TABLE IF NOT EXISTS tasks (
+    id SERIAL PRIMARY KEY,
+    partner_id INT,
+    description TEXT NOT NULL,
+    is_completed BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
 
   CREATE TABLE IF NOT EXISTS audit_logs (
     id SERIAL PRIMARY KEY,
@@ -212,7 +257,7 @@ pool.query(`
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 `).then(() => {
-  console.log("✔ Adatbázis sémák és hiányzó oszlopok sikeresen frissítve.");
+  console.log("✔ Adatbázis sémák (Tasks táblával) sikeresen frissítve.");
 }).catch(err => {
   console.error("❌ Hiba az adatbázis sémák frissítésekor:", err);
 });

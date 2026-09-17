@@ -29,8 +29,7 @@ function AddPartnerForm({ onPartnerAdded }) {
     revenue: '',
     tax_number: '',
     billing_address: '',
-    manager: '',
-    task: ''
+    manager: ''
   });
 
   const handleChange = (e) => {
@@ -53,7 +52,7 @@ function AddPartnerForm({ onPartnerAdded }) {
       });
       if (response.ok) {
         setFormData({
-          company_name: '', contact_person: '', phone: '', email: '', revenue: '', tax_number: '', billing_address: '', manager: '', task: ''
+          company_name: '', contact_person: '', phone: '', email: '', revenue: '', tax_number: '', billing_address: '', manager: ''
         });
         onPartnerAdded();
       } else {
@@ -90,10 +89,6 @@ function AddPartnerForm({ onPartnerAdded }) {
             <input name="manager" value={formData.manager} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
           </div>
           <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
-            <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Feladatkiírás</label><br/>
-            <input name="task" value={formData.task} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
-          </div>
-          <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
             <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Árbevétel</label><br/>
             <input name="revenue" value={formData.revenue} onChange={handleChange} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
           </div>
@@ -118,11 +113,14 @@ function App() {
   const [partners, setPartners] = useState([]);
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [editingPartner, setEditingPartner] = useState(null);
+  
   const [logs, setLogs] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
   const [newStatus, setNewStatus] = useState('');
   const [statusNote, setStatusNote] = useState('');
   const [plainNote, setPlainNote] = useState('');
+  const [newTaskDesc, setNewTaskDesc] = useState('');
 
   const fetchPartners = async () => {
     try {
@@ -144,6 +142,16 @@ function App() {
     }
   };
 
+  const fetchTasks = async (partnerId) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/partners/${partnerId}/tasks`);
+      const data = await response.json();
+      setTasks(data);
+    } catch (err) {
+      console.error('Hiba a feladatok lekérésekor:', err);
+    }
+  };
+
   useEffect(() => {
     fetchPartners();
   }, []);
@@ -153,7 +161,9 @@ function App() {
     setNewStatus(partner.status);
     setStatusNote('');
     setPlainNote('');
+    setNewTaskDesc('');
     fetchLogs(partner.id);
+    fetchTasks(partner.id);
   };
 
   const handleUpdateStatus = async () => {
@@ -193,20 +203,35 @@ function App() {
     }
   };
 
-  const handleCompleteTask = async () => {
-    if (!selectedPartner || selectedPartner.task_completed) return;
+  const handleAddTask = async () => {
+    if (!newTaskDesc.trim() || !selectedPartner) return;
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: newTaskDesc })
+      });
+      if (response.ok) {
+        setNewTaskDesc('');
+        fetchTasks(selectedPartner.id);
+        fetchLogs(selectedPartner.id);
+      }
+    } catch (err) {
+      console.error('Hiba feladat hozzáadásakor:', err);
+    }
+  };
+
+  const handleCompleteTaskItem = async (taskId) => {
     const isConfirmed = window.confirm("Biztosan készre jelented a feladatot? Ezt később nem módosíthatod!");
     if (!isConfirmed) return;
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/task-complete`, {
+      const response = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/tasks/${taskId}/complete`, {
         method: 'PUT'
       });
       if (response.ok) {
-        const updated = await response.json();
-        setSelectedPartner(updated);
-        fetchPartners();
-        fetchLogs(updated.id);
+        fetchTasks(selectedPartner.id);
+        fetchLogs(selectedPartner.id);
       }
     } catch (err) {
       console.error('Hiba a feladat lezárásakor:', err);
@@ -289,10 +314,6 @@ function App() {
                 <input value={editingPartner.manager || ''} onChange={(e) => setEditingPartner({...editingPartner, manager: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
               </div>
               <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Feladatkiírás</label><br/>
-                <input value={editingPartner.task || ''} onChange={(e) => setEditingPartner({...editingPartner, task: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
-              </div>
-              <div style={{ flex: '1 1 22%', minWidth: '200px' }}>
                 <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Árbevétel</label><br/>
                 <input value={editingPartner.revenue || ''} onChange={(e) => setEditingPartner({...editingPartner, revenue: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px', boxSizing: 'border-box' }}/>
               </div>
@@ -366,19 +387,31 @@ function App() {
             <hr style={{ margin: '15px 0' }} />
 
             <div style={{ background: '#e2e3e5', padding: '12px', borderRadius: '6px', marginBottom: '15px', border: '1px solid #d6d8db' }}>
-              <h4 style={{ margin: '0 0 8px 0' }}>Aktuális Feladat: {selectedPartner.task || 'Nincs kiosztott feladat'}</h4>
-              {selectedPartner.task && (
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: selectedPartner.task_completed ? 'not-allowed' : 'pointer', color: selectedPartner.task_completed ? '#6c757d' : '#000' }}>
-                  <input 
-                    type="checkbox" 
-                    checked={selectedPartner.task_completed} 
-                    onChange={handleCompleteTask} 
-                    disabled={selectedPartner.task_completed} 
-                    style={{ width: '18px', height: '18px' }}
-                  />
-                  <strong>{selectedPartner.task_completed ? 'FELADAT KÉSZ (Véglegesítve)' : 'Jelöld be, ha elkészült (Visszavonhatatlan!)'}</strong>
-                </label>
-              )}
+              <h4 style={{ margin: '0 0 10px 0' }}>Kiosztott Feladatok</h4>
+              <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
+                <input type="text" placeholder="Új feladat kiírása..." value={newTaskDesc} onChange={(e) => setNewTaskDesc(e.target.value)} style={{ flex: 1, padding: '8px', boxSizing: 'border-box' }}/>
+                <button type="button" onClick={handleAddTask} style={{ padding: '8px 14px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Hozzáadás</button>
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {tasks.length === 0 ? (
+                  <li style={{ color: '#6c757d', fontSize: '14px' }}>Nincs aktív feladat.</li>
+                ) : (
+                  tasks.map(t => (
+                    <li key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', background: '#fff', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={t.is_completed} 
+                        disabled={t.is_completed} 
+                        onChange={() => handleCompleteTaskItem(t.id)} 
+                        style={{ width: '18px', height: '18px', cursor: t.is_completed ? 'not-allowed' : 'pointer' }} 
+                      />
+                      <span style={{ textDecoration: t.is_completed ? 'line-through' : 'none', color: t.is_completed ? '#6c757d' : '#000', fontWeight: t.is_completed ? 'normal' : 'bold' }}>
+                        {t.description}
+                      </span>
+                    </li>
+                  ))
+                )}
+              </ul>
             </div>
 
             <div style={{ background: '#fff', padding: '12px', borderRadius: '6px', border: '1px solid #eee', marginBottom: '15px' }}>
