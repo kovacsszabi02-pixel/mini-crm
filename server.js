@@ -7,65 +7,45 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (PAGINÁCIÓ, SZÉKHELY, LEJÁRAT FIGYELÉS)!");
+console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (SABLONOK ÉS NAPI FELADATOK)!");
 
-process.on('uncaughtException', (err) => {
-    console.error('KIVÉTELES HIBA:', err);
-});
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('NEM KEZELT PROMISE HIBA:', reason);
-});
+process.on('uncaughtException', (err) => console.error('KIVÉTELES HIBA:', err));
+process.on('unhandledRejection', (reason, promise) => console.error('NEM KEZELT PROMISE HIBA:', reason));
 
 // 1. Partnerek lekérdezése
 app.get('/api/partners', async (req, res) => {
     try {
         const allPartners = await pool.query('SELECT * FROM partners ORDER BY id DESC');
         res.json(allPartners.rows);
-    } catch (err) {
-        console.error('Hiba partnerek lekérésekor:', err.message);
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // 2. Új partner hozzáadása
 app.post('/api/partners', async (req, res) => {
     try {
         const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, headquarters, manager, accepted_offer, website } = req.body;
-
         const newPartner = await pool.query(
-            `INSERT INTO partners 
-            (company_name, contact_person, phone, email, revenue, tax_number, billing_address, headquarters, status, manager, accepted_offer, website) 
+            `INSERT INTO partners (company_name, contact_person, phone, email, revenue, tax_number, billing_address, headquarters, status, manager, accepted_offer, website) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
-            [
-              company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', headquarters || '', '1. Új lead', manager || '', accepted_offer || '', website || ''
-            ]
+            [company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', headquarters || '', '1. Új lead', manager || '', accepted_offer || '', website || '']
         );
         res.json(newPartner.rows[0]);
-    } catch (err) {
-        console.error('DATABASE ERROR:', err);
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. Partner adatainak szerkesztése
+// 3. Partner szerkesztése
 app.put('/api/partners/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, headquarters, status, manager, accepted_offer, website } = req.body;
-
         const updatedPartner = await pool.query(
-            `UPDATE partners 
-             SET company_name = $1, contact_person = $2, phone = $3, email = $4, revenue = $5, tax_number = $6, billing_address = $7, headquarters = $8, status = $9, manager = $10, accepted_offer = $11, website = $12
+            `UPDATE partners SET company_name = $1, contact_person = $2, phone = $3, email = $4, revenue = $5, tax_number = $6, billing_address = $7, headquarters = $8, status = $9, manager = $10, accepted_offer = $11, website = $12
              WHERE id = $13 RETURNING *`,
             [company_name, contact_person, phone, email || '', revenue || '', tax_number || '', billing_address || '', headquarters || '', status, manager || '', accepted_offer || '', website || '', id]
         );
-
-        if (updatedPartner.rows.length === 0) return res.status(404).json({ error: 'A partner nem található.' });
+        if (updatedPartner.rows.length === 0) return res.status(404).json({ error: 'Nincs partner.' });
         res.json(updatedPartner.rows[0]);
-    } catch (err) {
-        console.error('Hiba a partner szerkesztésekor:', err.message);
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // 4. Státusz frissítése
@@ -73,43 +53,47 @@ app.put('/api/partners/:id/status', async (req, res) => {
     try {
         const { id } = req.params;
         const { status, note } = req.body;
-
-        const oldPartnerRes = await pool.query('SELECT status FROM partners WHERE id = $1', [id]);
-        const oldStatus = oldPartnerRes.rows[0] ? oldPartnerRes.rows[0].status : '';
-
+        const oldRes = await pool.query('SELECT status FROM partners WHERE id = $1', [id]);
+        const oldStatus = oldRes.rows[0] ? oldRes.rows[0].status : '';
         const updatedPartner = await pool.query('UPDATE partners SET status = $1 WHERE id = $2 RETURNING *', [status, id]);
-
         const logNote = note && note.trim() !== '' ? `Státusz módosítva: ${oldStatus} -> ${status}. Megjegyzés: ${note}` : `Státusz módosítva: ${oldStatus} -> ${status}`;
         await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, old_status, new_status, note) VALUES ($1, $2, $3, $4, $5, $6)', [id, 'Admin', 'STÁTUSZVÁLTÁS', oldStatus, status, logNote]);
-
         res.json(updatedPartner.rows[0]);
-    } catch (err) {
-        console.error('Hiba státusz frissítésekor:', err.message);
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 5. Feladatok lekérdezése (Lejárat automatikus ellenőrzése)
+// 5. Mai / Lejárt feladatok globális lekérdezése
+app.get('/api/tasks/today', async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const tasks = await pool.query(
+            `SELECT t.*, p.company_name 
+             FROM tasks t 
+             JOIN partners p ON t.partner_id = p.id 
+             WHERE t.due_date <= $1 AND t.is_completed = false 
+             ORDER BY t.due_date ASC, t.id ASC`, 
+            [today]
+        );
+        res.json(tasks.rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Feladatok partnerhez lekérése (és lejárat figyelés)
 app.get('/api/partners/:id/tasks', async (req, res) => {
     try {
         const { id } = req.params;
         const tasks = await pool.query('SELECT * FROM tasks WHERE partner_id = $1 ORDER BY id ASC', [id]);
-        
         const today = new Date().toISOString().split('T')[0];
-        let hasNewOverdue = false;
-
+        
         for (let task of tasks.rows) {
             if (!task.is_completed && task.due_date && task.due_date < today && !task.flagged_overdue) {
                 await pool.query('UPDATE tasks SET flagged_overdue = true WHERE id = $1', [task.id]);
-                await pool.query(
-                    'INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', 
+                await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', 
                     [id, 'Rendszer', 'LEJÁRT FELADAT', `A következő feladat határideje lejárt és nincs kész: ${task.description} (${task.due_date})`]
                 );
                 task.flagged_overdue = true;
-                hasNewOverdue = true;
             }
         }
-
         res.json(tasks.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -117,16 +101,9 @@ app.get('/api/partners/:id/tasks', async (req, res) => {
 app.post('/api/partners/:id/tasks', async (req, res) => {
     try {
         const { description, due_date } = req.body;
-        const newTask = await pool.query(
-            'INSERT INTO tasks (partner_id, description, due_date) VALUES ($1, $2, $3) RETURNING *', 
-            [req.params.id, description, due_date || null]
-        );
-        
+        const newTask = await pool.query('INSERT INTO tasks (partner_id, description, due_date) VALUES ($1, $2, $3) RETURNING *', [req.params.id, description, due_date || null]);
         const dateNote = due_date ? ` (Határidő: ${due_date})` : '';
-        await pool.query(
-            'INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', 
-            [req.params.id, 'Admin', 'ÚJ FELADAT', `Kiosztott feladat: ${description}${dateNote}`]
-        );
+        await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', [req.params.id, 'Admin', 'ÚJ FELADAT', `Kiosztott feladat: ${description}${dateNote}`]);
         res.json(newTask.rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -141,7 +118,7 @@ app.put('/api/partners/:partnerId/tasks/:taskId/complete', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 6. Dokumentumok kezelése
+// 6. Dokumentumok
 app.get('/api/partners/:id/documents', async (req, res) => {
     try {
         const docs = await pool.query('SELECT * FROM documents WHERE partner_id = $1 ORDER BY created_at DESC', [req.params.id]);
@@ -152,10 +129,7 @@ app.get('/api/partners/:id/documents', async (req, res) => {
 app.post('/api/partners/:id/documents', async (req, res) => {
     try {
         const { doc_type, doc_name, doc_url } = req.body;
-        const newDoc = await pool.query(
-            'INSERT INTO documents (partner_id, doc_type, doc_name, doc_url) VALUES ($1, $2, $3, $4) RETURNING *',
-            [req.params.id, doc_type, doc_name, doc_url]
-        );
+        const newDoc = await pool.query('INSERT INTO documents (partner_id, doc_type, doc_name, doc_url) VALUES ($1, $2, $3, $4) RETURNING *', [req.params.id, doc_type, doc_name, doc_url]);
         const typeName = doc_type === 'offer' ? 'Ajánlat' : 'Szerződés/Számla';
         await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', [req.params.id, 'Admin', 'ÚJ DOKUMENTUM', `${typeName} csatolva: ${doc_name}`]);
         res.json(newDoc.rows[0]);
@@ -165,11 +139,27 @@ app.post('/api/partners/:id/documents', async (req, res) => {
 app.delete('/api/partners/:partnerId/documents/:docId', async (req, res) => {
     try {
         await pool.query('DELETE FROM documents WHERE id = $1', [req.params.docId]);
-        res.json({ message: 'Dokumentum törölve.' });
+        res.json({ message: 'Törölve.' });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 7. Logok kezelése
+// 7. E-mail sablonok
+app.get('/api/email-templates', async (req, res) => {
+    try {
+        const templates = await pool.query('SELECT * FROM email_templates ORDER BY id ASC');
+        res.json(templates.rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/email-templates', async (req, res) => {
+    try {
+        const { title, subject, body } = req.body;
+        const newTpl = await pool.query('INSERT INTO email_templates (title, subject, body) VALUES ($1, $2, $3) RETURNING *', [title, subject, body]);
+        res.json(newTpl.rows[0]);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 8. Logok és törlés
 app.get('/api/partners/:id/logs', async (req, res) => {
     try {
         const logs = await pool.query('SELECT * FROM audit_logs WHERE partner_id = $1 ORDER BY created_at DESC', [req.params.id]);
@@ -184,31 +174,24 @@ app.post('/api/partners/:id/logs', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 8. Partner törlése
 app.delete('/api/partners/:id', async (req, res) => {
     try {
         await pool.query('DELETE FROM documents WHERE partner_id = $1', [req.params.id]);
         await pool.query('DELETE FROM tasks WHERE partner_id = $1', [req.params.id]);
         await pool.query('DELETE FROM partners WHERE id = $1', [req.params.id]);
-        res.json({ message: 'Partner és a hozzá tartozó adatok törölve.' });
+        res.json({ message: 'Partner törölve.' });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 const PORT = 5001;
 app.listen(PORT, () => console.log(`A szerver stabilan fut a http://localhost:${PORT} címen.`));
-
 setInterval(() => {}, 1000000);
 
-// Adatbázis sémák és hiányzó oszlopok biztosítása
+// Adatbázis sémák
 pool.query(`
   CREATE TABLE IF NOT EXISTS partners (
-    id SERIAL PRIMARY KEY,
-    company_name TEXT NOT NULL,
-    contact_person TEXT,
-    phone TEXT,
-    status TEXT
+    id SERIAL PRIMARY KEY, company_name TEXT NOT NULL, contact_person TEXT, phone TEXT, status TEXT
   );
-
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS email TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS revenue TEXT;
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS tax_number TEXT;
@@ -219,34 +202,20 @@ pool.query(`
   ALTER TABLE partners ADD COLUMN IF NOT EXISTS website TEXT;
   
   CREATE TABLE IF NOT EXISTS tasks (
-    id SERIAL PRIMARY KEY,
-    partner_id INT,
-    description TEXT NOT NULL,
-    is_completed BOOLEAN DEFAULT false,
-    due_date TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id SERIAL PRIMARY KEY, partner_id INT, description TEXT NOT NULL, is_completed BOOLEAN DEFAULT false, due_date TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
-
   ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_date TEXT;
   ALTER TABLE tasks ADD COLUMN IF NOT EXISTS flagged_overdue BOOLEAN DEFAULT false;
 
   CREATE TABLE IF NOT EXISTS documents (
-    id SERIAL PRIMARY KEY,
-    partner_id INT,
-    doc_type TEXT,
-    doc_name TEXT,
-    doc_url TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id SERIAL PRIMARY KEY, partner_id INT, doc_type TEXT, doc_name TEXT, doc_url TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
   CREATE TABLE IF NOT EXISTS audit_logs (
-    id SERIAL PRIMARY KEY,
-    partner_id INT,
-    user_name TEXT,
-    action_type TEXT,
-    old_status TEXT,
-    new_status TEXT,
-    note TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id SERIAL PRIMARY KEY, partner_id INT, user_name TEXT, action_type TEXT, old_status TEXT, new_status TEXT, note TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS email_templates (
+    id SERIAL PRIMARY KEY, title TEXT NOT NULL, subject TEXT, body TEXT
   );
 `).then(() => console.log("✔ Adatbázis sémák sikeresen frissítve.")).catch(err => console.error("❌ Hiba az adatbázis sémák frissítésekor:", err));
