@@ -33,7 +33,6 @@ function AddPartnerForm({ onPartnerAdded }) {
     <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #ddd' }}>
       <h3 style={{ borderBottom: '2px solid #ccc', paddingBottom: '10px' }}>Új partner rögzítése</h3>
       <form onSubmit={handleSubmit}>
-        {/* ALAPADATOK */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
           <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév *</label><br/><input name="company_name" value={formData.company_name} onChange={handleChange} required style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}/></div>
           <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Döntéshozó *</label><br/><input name="contact_person" value={formData.contact_person} onChange={handleChange} required style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}/></div>
@@ -44,7 +43,6 @@ function AddPartnerForm({ onPartnerAdded }) {
           <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Székhely</label><br/><input name="headquarters" value={formData.headquarters} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}/></div>
         </div>
 
-        {/* CÉGES ÉS PÉNZÜGYI KIEMELT BLOKK */}
         <div style={{ background: '#e9ecef', padding: '15px', borderRadius: '6px', display: 'flex', flexWrap: 'wrap', gap: '10px', border: '1px solid #ced4da' }}>
             <div style={{ flex: '1 1 100%', marginBottom: '5px' }}><strong style={{ fontSize: '14px', color: '#495057' }}>Pénzügyi és Csomag adatok</strong></div>
             <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Számlázási cím</label><br/><input name="billing_address" value={formData.billing_address} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', border: '1px solid #80bdff' }}/></div>
@@ -146,13 +144,10 @@ function App() {
 
   const handleSaveTemplate = async () => {
     if (!newTplTitle.trim()) return;
-    if (editingTplId) {
-        const res = await fetch(`${BACKEND_URL}/api/email-templates/${editingTplId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTplTitle, subject: newTplSubject, body: newTplBody }) });
-        if (res.ok) { setEditingTplId(null); setNewTplTitle(''); setNewTplSubject(''); setNewTplBody(''); fetchEmailTemplates(); }
-    } else {
-        const res = await fetch(`${BACKEND_URL}/api/email-templates`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTplTitle, subject: newTplSubject, body: newTplBody }) });
-        if (res.ok) { setNewTplTitle(''); setNewTplSubject(''); setNewTplBody(''); fetchEmailTemplates(); }
-    }
+    const endpoint = editingTplId ? `${BACKEND_URL}/api/email-templates/${editingTplId}` : `${BACKEND_URL}/api/email-templates`;
+    const method = editingTplId ? 'PUT' : 'POST';
+    const res = await fetch(endpoint, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTplTitle, subject: newTplSubject, body: newTplBody }) });
+    if (res.ok) { setEditingTplId(null); setNewTplTitle(''); setNewTplSubject(''); setNewTplBody(''); fetchEmailTemplates(); }
   };
   
   const handleEditTemplateInit = () => {
@@ -195,7 +190,6 @@ function App() {
     }
   };
 
-  // KERESŐMOTOR (Csomag, Kiegészítők, Számlázási cím is benne van)
   const filteredPartners = partners.filter(p => {
     const term = searchTerm.toLowerCase();
     const matchesSearch = (
@@ -223,7 +217,6 @@ function App() {
     <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '1400px', margin: '0 auto' }}>
       <h1>Mini CRM</h1>
 
-      {/* RÖGZÍTÉS ÉS SZERKESZTÉS */}
       <AddPartnerForm onPartnerAdded={fetchPartners} />
 
       {editingPartner && (
@@ -240,7 +233,6 @@ function App() {
               <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Székhely</label><br/><input value={editingPartner.headquarters || ''} onChange={(e) => setEditingPartner({...editingPartner, headquarters: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}/></div>
             </div>
 
-            {/* PÉNZÜGYI BLOKK SZERKESZTŐBEN IS */}
             <div style={{ background: '#ffeeba', padding: '15px', borderRadius: '6px', display: 'flex', flexWrap: 'wrap', gap: '10px', border: '1px solid #ffdf7e' }}>
                 <div style={{ flex: '1 1 100%', marginBottom: '5px' }}><strong style={{ fontSize: '14px', color: '#856404' }}>Pénzügyi és Csomag adatok</strong></div>
                 <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#856404' }}>Számlázási cím</label><br/><input value={editingPartner.billing_address || ''} onChange={(e) => setEditingPartner({...editingPartner, billing_address: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', border: '1px solid #ffdf7e' }}/></div>
@@ -343,10 +335,7 @@ function App() {
              <button onClick={() => handleDeletePartner(selectedPartner.id)} style={{ padding: '6px 12px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Partner végleges törlése</button>
           </div>
           
-          {/* MUNKATERÜLET: INFORMÁCIÓS SÁV - LÁTVÁNYOSAN KETTÉSZEDVE ALAP ÉS PÉNZÜGYI ADATOKRA */}
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '25px' }}>
-              
-              {/* ALAP ADATOK DOBOZ */}
               <div style={{ flex: '1 1 45%', background: '#f8f9fa', padding: '20px', borderRadius: '8px', border: '1px solid #dee2e6' }}>
                   <h4 style={{ margin: '0 0 15px 0', borderBottom: '2px solid #ccc', paddingBottom: '5px' }}>Alap Információk</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
@@ -359,7 +348,6 @@ function App() {
                   </div>
               </div>
 
-              {/* PÉNZÜGYEK ÉS CSOMAGOK DOBOZ - KÖTELEZŐEN LÁTHATÓ */}
               <div style={{ flex: '1 1 45%', background: '#e6f2ff', padding: '20px', borderRadius: '8px', border: '2px solid #b3d7ff' }}>
                   <h4 style={{ margin: '0 0 15px 0', borderBottom: '2px solid #b3d7ff', paddingBottom: '5px', color: '#004085' }}>Pénzügyek és Csomag</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
@@ -377,11 +365,9 @@ function App() {
               </div>
           </div>
 
-          {/* FUNKCIÓSÁV ÉS IDŐVONAL */}
           <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
             <div style={{ flex: '1 1 500px' }}>
               
-              {/* 1. STÁTUSZ */}
               <div style={{ background: '#fff', padding: '15px', borderRadius: '6px', border: '1px solid #ddd', marginBottom: '20px' }}>
                 <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>1. Státusz módosítása</h4>
                 <div style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
@@ -391,7 +377,6 @@ function App() {
                 <input type="text" placeholder="Státuszváltás indoklása (opcionális)..." value={statusNote} onChange={(e) => setStatusNote(e.target.value)} style={{ width: '100%', padding: '10px', boxSizing: 'border-box', border: '1px solid #eee', borderRadius: '4px' }}/>
               </div>
 
-              {/* 2. MEGJEGYZÉS */}
               <div style={{ background: '#fff', padding: '15px', borderRadius: '6px', border: '1px solid #ddd', marginBottom: '20px' }}>
                 <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>2. Új megjegyzés a falra</h4>
                 <div style={{ display: 'flex', gap: '5px' }}>
@@ -400,7 +385,6 @@ function App() {
                 </div>
               </div>
 
-              {/* 3. FELADAT */}
               <div style={{ background: '#e2e3e5', padding: '15px', borderRadius: '6px', marginBottom: '20px', border: '1px solid #d6d8db' }}>
                 <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>3. Kiosztott Feladatok</h4>
                 <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
@@ -423,7 +407,7 @@ function App() {
                 </ul>
               </div>
 
-              {/* 4. EMAIL */}
+              {/* 4. EMAIL & SABLONOK (ITT HASZNÁLJUK A FÜGGVÉNYEKET, HOGY NE LEGYEN ESLINT HIBA) */}
               <div style={{ background: '#eef9f0', padding: '15px', borderRadius: '6px', marginBottom: '20px', border: '1px solid #c3e6cb' }}>
                 <h4 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#155724' }}>4. E-mail küldés (Sablonok)</h4>
                 <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
@@ -432,6 +416,23 @@ function App() {
                         {emailTemplates.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
                     </select>
                     <button onClick={sendEmail} style={{ padding: '10px 20px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>✉ Küldés</button>
+                    {selectedTplId && (
+                        <>
+                          <button onClick={handleEditTemplateInit} style={{ padding: '10px 15px', background: '#ffc107', border: 'none', borderRadius: '4px', cursor: 'pointer' }} title="Szerkesztés">✏️</button>
+                          <button onClick={handleDeleteTemplate} style={{ padding: '10px 15px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }} title="Törlés">✖</button>
+                        </>
+                    )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: '#fff', padding: '15px', borderRadius: '4px', border: '1px solid #ccc' }}>
+                    <strong style={{ fontSize: '13px', color: '#555' }}>{editingTplId ? 'Sablon szerkesztése' : 'Új sablon rögzítése az adatbázisba'}</strong>
+                    <input type="text" placeholder="Sablon neve" value={newTplTitle} onChange={e => setNewTplTitle(e.target.value)} style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}/>
+                    <input type="text" placeholder="E-mail tárgya" value={newTplSubject} onChange={e => setNewTplSubject(e.target.value)} style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}/>
+                    <textarea placeholder="E-mail szövege..." value={newTplBody} onChange={e => setNewTplBody(e.target.value)} style={{ padding: '8px', minHeight: '80px', border: '1px solid #ddd', borderRadius: '4px', fontFamily: 'inherit' }}></textarea>
+                    <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
+                       <button onClick={handleSaveTemplate} style={{ flex: 1, padding: '10px', background: editingTplId ? '#ffc107' : '#6c757d', color: editingTplId ? '#000' : '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>{editingTplId ? 'Módosítás mentése' : 'Mentés új sablonként'}</button>
+                       {editingTplId && <button onClick={() => { setEditingTplId(null); setNewTplTitle(''); setNewTplSubject(''); setNewTplBody(''); }} style={{ padding: '10px', background: '#ddd', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', color: '#333' }}>Mégse</button>}
+                    </div>
                 </div>
               </div>
 
@@ -445,8 +446,6 @@ function App() {
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
                   <button onClick={() => handleAddDocument('offer')} style={{ flex: 1, padding: '10px', background: '#17a2b8', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}>+ Ajánlat</button>
                   <button onClick={() => handleAddDocument('contract')} style={{ flex: 1, padding: '10px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}>+ Szerződés</button>
-                  
-                  {/* PLAYBOOK GOMB */}
                   <button onClick={() => handleAddDocument('playbook')} style={{ flex: 1, padding: '10px', background: '#6f42c1', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', boxShadow: '0 2px 5px rgba(111, 66, 193, 0.4)' }}>📘 + Playbook</button>
                 </div>
                 
@@ -465,8 +464,6 @@ function App() {
                       {documents.filter(d => d.doc_type === 'contract').map(d => (<li key={d.id} style={{ marginBottom: '8px' }}><a href={d.doc_url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: '#007bff', fontWeight: 'bold' }}>{d.doc_name}</a> <button onClick={() => handleDeleteDocument(d.id)} style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer' }}>✖</button></li>))}
                     </ul>
                   </div>
-                  
-                  {/* PLAYBOOK LISTA */}
                   <div style={{ flex: '1 1 30%', background: '#f3e8ff', padding: '15px', borderRadius: '6px', border: '2px solid #d8b4fe', boxShadow: 'inset 0 0 10px rgba(111, 66, 193, 0.05)' }}>
                     <strong style={{ color: '#6f42c1', display: 'block', marginBottom: '10px', borderBottom: '1px solid #d8b4fe', paddingBottom: '5px', fontSize: '16px' }}>📘 Kész Playbook</strong>
                     <ul style={{ paddingLeft: '20px', margin: 0 }}>
