@@ -7,37 +7,57 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (PLAYBOOK, CSOMAGOK, SHEETS SYNC)!");
+console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (KÖZVETLEN GOOGLE SHEETS SYNC KÉSZ)!");
 
 process.on('uncaughtException', (err) => console.error('KIVÉTELES HIBA:', err));
 process.on('unhandledRejection', (reason, promise) => console.error('NEM KEZELT PROMISE HIBA:', reason));
 
 // ==========================================
-// GOOGLE SHEETS WEBHOOK
+// KÖZVETLEN GOOGLE SHEETS SZINKRONIZÁCIÓ (APPS SCRIPT)
 // ==========================================
-const SHEETS_WEBHOOK_URL = 'https://hook.eu1.make.com/jmogauf6u4419qevtpdshtoebyjrvhcw'; 
+const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxaixhV5_53iux6WtjaLD0F2CagI42d1110XMbaDzMMCmho1BLGPmIPdd2O23bYgY5Emg/exec'; 
 
 function syncToSheets(partnerData, action) {
     if (!SHEETS_WEBHOOK_URL) return;
-    try {
-        const data = JSON.stringify({ action, partner: partnerData });
-        const url = new URL(SHEETS_WEBHOOK_URL);
-        
-        const options = {
-            hostname: url.hostname,
-            path: url.pathname + url.search,
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
-        };
+    
+    function makeRequest(targetUrl) {
+        try {
+            const url = new URL(targetUrl);
+            const data = JSON.stringify({ action, partner: partnerData });
+            
+            const options = {
+                hostname: url.hostname,
+                path: url.pathname + url.search,
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Content-Length': Buffer.byteLength(data) 
+                }
+            };
 
-        const req = https.request(options, (res) => {
-            console.log(`[Google Sheets Sync] Státusz: ${res.statusCode} | Cég: ${partnerData.company_name}`);
-        });
+            const req = https.request(options, (res) => {
+                // Google Apps Script 302 átirányítás kezelése
+                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                    makeRequest(res.headers.location);
+                    return;
+                }
+                
+                let body = '';
+                res.on('data', (chunk) => body += chunk);
+                res.on('end', () => {
+                    console.log(`[Google Sheets Sync] Státusz: ${res.statusCode} | Cég: ${partnerData.company_name}`);
+                });
+            });
 
-        req.on('error', (error) => console.error('[Google Sheets Sync Hiba]:', error.message));
-        req.write(data);
-        req.end();
-    } catch (err) { console.error('[Google Sheets Sync Kivétel]:', err.message); }
+            req.on('error', (error) => console.error('[Google Sheets Sync Hiba]:', error.message));
+            req.write(data);
+            req.end();
+        } catch (err) {
+            console.error('[Google Sheets Sync Kivétel]:', err.message);
+        }
+    }
+
+    makeRequest(SHEETS_WEBHOOK_URL);
 }
 
 // 1. Lekérdezés
