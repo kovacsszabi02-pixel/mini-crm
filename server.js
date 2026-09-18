@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (SABLONOK ÉS NAPI FELADATOK)!");
+console.log("--> FIGYELEM: EZ A FRISSITETT SERVER.JS FUT (SABLON SZERKESZTÉS + IDŐVONAL TÁMOGATÁS)!");
 
 process.on('uncaughtException', (err) => console.error('KIVÉTELES HIBA:', err));
 process.on('unhandledRejection', (reason, promise) => console.error('NEM KEZELT PROMISE HIBA:', reason));
@@ -20,7 +20,7 @@ app.get('/api/partners', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 2. Új partner hozzáadása
+// 2. Új partner
 app.post('/api/partners', async (req, res) => {
     try {
         const { company_name, contact_person, phone, email, revenue, tax_number, billing_address, headquarters, manager, accepted_offer, website } = req.body;
@@ -56,29 +56,24 @@ app.put('/api/partners/:id/status', async (req, res) => {
         const oldRes = await pool.query('SELECT status FROM partners WHERE id = $1', [id]);
         const oldStatus = oldRes.rows[0] ? oldRes.rows[0].status : '';
         const updatedPartner = await pool.query('UPDATE partners SET status = $1 WHERE id = $2 RETURNING *', [status, id]);
-        const logNote = note && note.trim() !== '' ? `Státusz módosítva: ${oldStatus} -> ${status}. Megjegyzés: ${note}` : `Státusz módosítva: ${oldStatus} -> ${status}`;
+        const logNote = note && note.trim() !== '' ? `${oldStatus} ➔ ${status} | Megjegyzés: ${note}` : `${oldStatus} ➔ ${status}`;
         await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, old_status, new_status, note) VALUES ($1, $2, $3, $4, $5, $6)', [id, 'Admin', 'STÁTUSZVÁLTÁS', oldStatus, status, logNote]);
         res.json(updatedPartner.rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 5. Mai / Lejárt feladatok globális lekérdezése
+// 5. Mai / Lejárt feladatok és specifikus feladatok
 app.get('/api/tasks/today', async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
         const tasks = await pool.query(
-            `SELECT t.*, p.company_name 
-             FROM tasks t 
-             JOIN partners p ON t.partner_id = p.id 
-             WHERE t.due_date <= $1 AND t.is_completed = false 
-             ORDER BY t.due_date ASC, t.id ASC`, 
+            `SELECT t.*, p.company_name FROM tasks t JOIN partners p ON t.partner_id = p.id WHERE t.due_date <= $1 AND t.is_completed = false ORDER BY t.due_date ASC, t.id ASC`, 
             [today]
         );
         res.json(tasks.rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Feladatok partnerhez lekérése (és lejárat figyelés)
 app.get('/api/partners/:id/tasks', async (req, res) => {
     try {
         const { id } = req.params;
@@ -89,7 +84,7 @@ app.get('/api/partners/:id/tasks', async (req, res) => {
             if (!task.is_completed && task.due_date && task.due_date < today && !task.flagged_overdue) {
                 await pool.query('UPDATE tasks SET flagged_overdue = true WHERE id = $1', [task.id]);
                 await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', 
-                    [id, 'Rendszer', 'LEJÁRT FELADAT', `A következő feladat határideje lejárt és nincs kész: ${task.description} (${task.due_date})`]
+                    [id, 'Rendszer', 'LEJÁRT FELADAT', `${task.description} (${task.due_date})`]
                 );
                 task.flagged_overdue = true;
             }
@@ -102,8 +97,8 @@ app.post('/api/partners/:id/tasks', async (req, res) => {
     try {
         const { description, due_date } = req.body;
         const newTask = await pool.query('INSERT INTO tasks (partner_id, description, due_date) VALUES ($1, $2, $3) RETURNING *', [req.params.id, description, due_date || null]);
-        const dateNote = due_date ? ` (Határidő: ${due_date})` : '';
-        await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', [req.params.id, 'Admin', 'ÚJ FELADAT', `Kiosztott feladat: ${description}${dateNote}`]);
+        const dateNote = due_date ? `(Határidő: ${due_date})` : '';
+        await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', [req.params.id, 'Admin', 'ÚJ FELADAT', `${description} ${dateNote}`]);
         res.json(newTask.rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -112,7 +107,7 @@ app.put('/api/partners/:partnerId/tasks/:taskId/complete', async (req, res) => {
     try {
         const updatedTask = await pool.query('UPDATE tasks SET is_completed = true WHERE id = $1 RETURNING *', [req.params.taskId]);
         if (updatedTask.rows.length > 0) {
-            await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', [req.params.partnerId, 'Admin', 'FELADAT KÉSZ', `Feladat lezárva: ${updatedTask.rows[0].description}`]);
+            await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', [req.params.partnerId, 'Admin', 'FELADAT KÉSZ', `Elvégezve: ${updatedTask.rows[0].description}`]);
         }
         res.json(updatedTask.rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -143,7 +138,7 @@ app.delete('/api/partners/:partnerId/documents/:docId', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 7. E-mail sablonok
+// 7. E-mail sablonok CRUD
 app.get('/api/email-templates', async (req, res) => {
     try {
         const templates = await pool.query('SELECT * FROM email_templates ORDER BY id ASC');
@@ -159,6 +154,21 @@ app.post('/api/email-templates', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+app.put('/api/email-templates/:id', async (req, res) => {
+    try {
+        const { title, subject, body } = req.body;
+        const updated = await pool.query('UPDATE email_templates SET title = $1, subject = $2, body = $3 WHERE id = $4 RETURNING *', [title, subject, body, req.params.id]);
+        res.json(updated.rows[0]);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/email-templates/:id', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM email_templates WHERE id = $1', [req.params.id]);
+        res.json({ message: 'Sablon törölve.' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // 8. Logok és törlés
 app.get('/api/partners/:id/logs', async (req, res) => {
     try {
@@ -169,7 +179,8 @@ app.get('/api/partners/:id/logs', async (req, res) => {
 
 app.post('/api/partners/:id/logs', async (req, res) => {
     try {
-        const newLog = await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4) RETURNING *', [req.params.id, 'Admin', 'MEGJEGYZÉS', req.body.note]);
+        const actionType = req.body.action_type || 'MEGJEGYZÉS';
+        const newLog = await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4) RETURNING *', [req.params.id, 'Admin', actionType, req.body.note]);
         res.json(newLog.rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
