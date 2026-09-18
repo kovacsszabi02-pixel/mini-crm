@@ -14,7 +14,7 @@ process.on('unhandledRejection', (reason, promise) => console.error('NEM KEZELT 
 // ==========================================
 // KÖZVETLEN GOOGLE SHEETS SZINKRONIZÁCIÓ (FETCH)
 // ==========================================
-const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzyHffbOgFxtR0G10GiKewxtACcqyNTWdEi2O6R74F8MqXvm0A8YqN4PKri6ATBdas5EQ/exec'; 
+const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/library/d/1qXEbUeQyseh75UgDPdZ4zD-evzhDFozPC0-QLMMxcUtGFLA5CGKB3NQ5/1'; 
 
 async function syncToSheets(partnerData, action) {
     if (!SHEETS_WEBHOOK_URL) return;
