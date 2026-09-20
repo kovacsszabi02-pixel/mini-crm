@@ -56,6 +56,7 @@ function AddPartnerForm({ onPartnerAdded, theme }) {
 
  <div style={{ background: theme.subBg, padding: '15px', borderRadius: '6px', display: 'flex', flexWrap: 'wrap', gap: '10px', border: `1px solid ${theme.border}` }}>
  <div style={{ flex: '1 1 100%' }}><strong style={{ fontSize: '13px', color: theme.text }}>📦 Üzleti & Csomag Paraméterek</strong></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Elfogadott Árajánlat</label><br/><input name="accepted_offer" value={formData.accepted_offer} onChange={handleChange} style={inputStyle}/></div>
  <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Választott Csomag</label><br/><input name="chosen_package" value={formData.chosen_package} onChange={handleChange} style={inputStyle}/></div>
  <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Konzílium Szám</label><br/><input name="consultation_count" value={formData.consultation_count} onChange={handleChange} style={inputStyle}/></div>
  <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Kiegészítők</label><br/><input name="addons" value={formData.addons} onChange={handleChange} style={inputStyle}/></div>
@@ -268,6 +269,7 @@ function App() {
  <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Értékesítő (Manager)</label><br/><input value={editingPartner.manager || ''} onChange={(e) => setEditingPartner({...editingPartner, manager: e.target.value})} style={editInputStyle}/></div>
  <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Személyiségtípus</label><br/><select value={editingPartner.personality_type || 'Nincs megadva'} onChange={(e) => setEditingPartner({...editingPartner, personality_type: e.target.value})} style={editInputStyle}>{PERSONALITIES.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
  <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Meglévő rendszer</label><br/><input value={editingPartner.existing_system || ''} onChange={(e) => setEditingPartner({...editingPartner, existing_system: e.target.value})} style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Elfogadott árajánlat</label><br/><input value={editingPartner.accepted_offer || ''} onChange={(e) => setEditingPartner({...editingPartner, accepted_offer: e.target.value})} style={editInputStyle}/></div>
  <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Csomag</label><br/><input value={editingPartner.chosen_package || ''} onChange={(e) => setEditingPartner({...editingPartner, chosen_package: e.target.value})} style={editInputStyle}/></div>
  <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Konzílium</label><br/><input value={editingPartner.consultation_count || ''} onChange={(e) => setEditingPartner({...editingPartner, consultation_count: e.target.value})} style={editInputStyle}/></div>
  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '20px' }}><input type="checkbox" checked={editingPartner.discount_applied || false} onChange={(e) => setEditingPartner({...editingPartner, discount_applied: e.target.checked})} style={{ transform: 'scale(1.4)' }}/><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kedvezmény volt?</label></div>
@@ -382,7 +384,7 @@ function App() {
  </div>
  </div>
 
- {/* VADONATÚJ: PARTNER ADATLAP BLOKK A MUNKATERÜLETEN */}
+ {/* PARTNER ADATLAP BLOKK A MUNKATERÜLETEN */}
  <div style={{ background: theme.subBg, padding: '20px', borderRadius: '8px', marginBottom: '25px', border: `1px solid ${theme.border}` }}>
  <h4 style={{ margin: '0 0 15px 0', borderBottom: `2px solid ${theme.border}`, paddingBottom: '8px', color: '#007bff' }}>👤 Partner Adatlap</h4>
  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '15px' }}>
@@ -395,6 +397,7 @@ function App() {
  <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>SZÉKHELY</span><span style={{ fontSize: '14px', fontWeight: '500' }}>{selectedPartner.headquarters || '-'}</span></div>
  <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>SZÁMLÁZÁSI CÍM</span><span style={{ fontSize: '14px', fontWeight: '500' }}>{selectedPartner.billing_address || '-'}</span></div>
  <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>ÉRTÉKESÍTŐ</span><span style={{ fontSize: '14px', fontWeight: '500', color: '#28a745' }}>{selectedPartner.manager || '-'}</span></div>
+ <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>ELFOGADOTT ÁRAJÁNLAT</span><span style={{ fontSize: '14px', fontWeight: '500', color: '#17a2b8' }}>{selectedPartner.accepted_offer || '-'}</span></div>
  </div>
  </div>
 
