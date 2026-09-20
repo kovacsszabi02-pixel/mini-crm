@@ -23,26 +23,26 @@ function AddPartnerForm({ onPartnerAdded }) {
   const handleSubmit = async (e) => { e.preventDefault(); await fetch(`${BACKEND_URL}/api/partners`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) }); setFormData({ company_name: '', contact_person: '', phone: '', email: '', website: '', revenue: '', tax_number: '', billing_address: '', headquarters: '', manager: '', accepted_offer: '', chosen_package: '', addons: '', personality_type: 'Nincs megadva', existing_system: '', consultation_count: '', discount_applied: false, discount_details: '' }); onPartnerAdded(); };
 
   return (
-    <div style={{ background: '#fff', padding: '20px', border: '2px solid #000', marginBottom: '20px' }}>
-      <h3 style={{ borderBottom: '2px solid #000', paddingBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Új Partner Rögzítése</h3>
+    <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #ced4da', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+      <h3 style={{ borderBottom: '2px solid #007bff', paddingBottom: '10px', color: '#007bff', marginTop: 0 }}>➕ Új Partner Rögzítése</h3>
       <form onSubmit={handleSubmit}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
-          <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>CÉGNÉV *</label><br/><input name="company_name" value={formData.company_name} onChange={handleChange} required style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>
-          <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>DÖNTÉSHOZÓ *</label><br/><input name="contact_person" value={formData.contact_person} onChange={handleChange} required style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>
-          <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>TELEFON *</label><br/><input name="phone" value={formData.phone} onChange={handleChange} required style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>
-          <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>EMAIL</label><br/><input name="email" type="email" value={formData.email} onChange={handleChange} style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>
-          <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>SZEMÉLYISÉGTÍPUS</label><br/><select name="personality_type" value={formData.personality_type} onChange={handleChange} style={{ width: '100%', padding: '8px', border: '1px solid #000' }}>{PERSONALITIES.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
-          <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>MEGLÉVŐ RENDSZER</label><br/><input name="existing_system" value={formData.existing_system} onChange={handleChange} style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév *</label><br/><input name="company_name" value={formData.company_name} onChange={handleChange} required style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}/></div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Döntéshozó *</label><br/><input name="contact_person" value={formData.contact_person} onChange={handleChange} required style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}/></div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Telefonszám *</label><br/><input name="phone" value={formData.phone} onChange={handleChange} required style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}/></div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email</label><br/><input name="email" type="email" value={formData.email} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}/></div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Személyiségtípus</label><br/><select name="personality_type" value={formData.personality_type} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}>{PERSONALITIES.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+          <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Meglévő Rendszer</label><br/><input name="existing_system" value={formData.existing_system} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}/></div>
         </div>
-        <div style={{ background: '#f8f9fa', padding: '15px', display: 'flex', flexWrap: 'wrap', gap: '10px', border: '1px solid #000' }}>
-            <div style={{ flex: '1 1 100%' }}><strong style={{ fontSize: '12px', textTransform: 'uppercase' }}>Üzleti Paraméterek</strong></div>
-            <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>CSOMAG</label><br/><input name="chosen_package" value={formData.chosen_package} onChange={handleChange} style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>
-            <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>KONZÍLIUM SZÁM</label><br/><input name="consultation_count" value={formData.consultation_count} onChange={handleChange} style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>
-            <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>KIEGÉSZÍTŐK</label><br/><input name="addons" value={formData.addons} onChange={handleChange} style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>
-            <div style={{ flex: '1 1 22%', display: 'flex', alignItems: 'center', gap: '10px' }}><input type="checkbox" name="discount_applied" checked={formData.discount_applied} onChange={handleChange} style={{ transform: 'scale(1.5)' }}/><label style={{ fontSize: '11px', fontWeight: 'bold' }}>KEDVEZMÉNY VOLT?</label></div>
-            {formData.discount_applied && ( <div style={{ flex: '1 1 100%' }}><input name="discount_details" placeholder="Kedvezmény indoklása..." value={formData.discount_details} onChange={handleChange} style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div> )}
+        <div style={{ background: '#e9ecef', padding: '15px', borderRadius: '6px', display: 'flex', flexWrap: 'wrap', gap: '10px', border: '1px solid #ced4da' }}>
+            <div style={{ flex: '1 1 100%' }}><strong style={{ fontSize: '13px', color: '#495057' }}>📦 Üzleti & Csomag Paraméterek</strong></div>
+            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Választott Csomag</label><br/><input name="chosen_package" value={formData.chosen_package} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #80bdff' }}/></div>
+            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Konzílium Szám</label><br/><input name="consultation_count" value={formData.consultation_count} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #80bdff' }}/></div>
+            <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Kiegészítők</label><br/><input name="addons" value={formData.addons} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #80bdff' }}/></div>
+            <div style={{ flex: '1 1 22%', display: 'flex', alignItems: 'center', gap: '10px', marginTop: '15px' }}><input type="checkbox" name="discount_applied" checked={formData.discount_applied} onChange={handleChange} style={{ transform: 'scale(1.4)' }}/><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#28a745' }}>🏷️ Kedvezmény volt?</label></div>
+            {formData.discount_applied && ( <div style={{ flex: '1 1 100%' }}><input name="discount_details" placeholder="Kedvezmény indoklása..." value={formData.discount_details} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #28a745' }}/></div> )}
         </div>
-        <div style={{ marginTop: '15px' }}><button type="submit" style={{ padding: '12px 24px', background: '#000', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 'bold', textTransform: 'uppercase' }}>VÉGREHAJTÁS (Mentés)</button></div>
+        <div style={{ marginTop: '15px' }}><button type="submit" style={{ padding: '10px 20px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>💾 Partner Rögzítése</button></div>
       </form>
     </div>
   );
@@ -55,7 +55,6 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -132,7 +131,7 @@ function App() {
   };
 
   const handleGhosting = async () => {
-      if(!window.confirm("ZOMBIE LEAD SWEEPER ÉLESÍTVE. Eltűnt státuszba teszed?")) return;
+      if(!window.confirm("ZOMBIE LEAD SWEEPER: Eltűnt státuszba teszed?")) return;
       const payload = { status: '13. Elveszített', lost_reason: 'Eltűnt', note: 'ZOMBIE LEAD - Eltűnt', next_interaction_date: addDays(getTodayStr(), 30) };
       const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if(res.ok) {
@@ -142,17 +141,17 @@ function App() {
   };
 
   const handleSaveEdit = async (e) => { e.preventDefault(); const res = await fetch(`${BACKEND_URL}/api/partners/${editingPartner.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editingPartner) }); if (res.ok) { const updated = await res.json(); if (selectedPartner?.id === updated.id) setSelectedPartner(updated); setEditingPartner(null); fetchPartners(); } };
-  const handleDeletePartner = async (id) => { if (!window.confirm("Biztosan törlöd?")) return; const res = await fetch(`${BACKEND_URL}/api/partners/${id}`, { method: 'DELETE' }); if (res.ok) { if (selectedPartner?.id === id) setSelectedPartner(null); fetchPartners(); fetchTodayTasks(); } };
+  const handleDeletePartner = async (id) => { if (!window.confirm("Biztosan törlöd ezt a partnert?")) return; const res = await fetch(`${BACKEND_URL}/api/partners/${id}`, { method: 'DELETE' }); if (res.ok) { if (selectedPartner?.id === id) setSelectedPartner(null); fetchPartners(); fetchTodayTasks(); } };
   const handleAddPlainNote = async () => { if (!plainNote.trim()) return; const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/logs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note: plainNote, action_type: 'MEGJEGYZÉS' }) }); if (res.ok) { setPlainNote(''); fetchLogs(selectedPartner.id); fetchPartners(); } };
   const handleAddTask = async () => { if (!newTaskDesc.trim()) return; const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: newTaskDesc, due_date: newTaskDate }) }); if (res.ok) { setNewTaskDesc(''); setNewTaskDate(''); fetchTasksAndLogs(selectedPartner.id); } };
   const completeTask = async (taskId) => { await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/tasks/${taskId}/complete`, { method: 'PUT' }); fetchTasksAndLogs(selectedPartner.id); fetchPartners(); fetchTodayTasks(); };
   
   const handleAddDocument = async (docType) => { if (!newDocName.trim() || !newDocUrl.trim()) return alert('Adj meg nevet és linket!'); const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/documents`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ doc_type: docType, doc_name: newDocName, doc_url: newDocUrl }) }); if (res.ok) { setNewDocName(''); setNewDocUrl(''); fetchDocuments(selectedPartner.id); fetchLogs(selectedPartner.id); } };
-  const handleDeleteDocument = async (docId) => { if (!window.confirm("Törlöd?")) return; const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/documents/${docId}`, { method: 'DELETE' }); if (res.ok) fetchDocuments(selectedPartner.id); };
+  const handleDeleteDocument = async (docId) => { if (!window.confirm("Törlöd a dokumentumot?")) return; const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/documents/${docId}`, { method: 'DELETE' }); if (res.ok) fetchDocuments(selectedPartner.id); };
   
   const handleSaveTemplate = async () => { if (!newTplTitle.trim()) return; const endpoint = editingTplId ? `${BACKEND_URL}/api/email-templates/${editingTplId}` : `${BACKEND_URL}/api/email-templates`; const res = await fetch(endpoint, { method: editingTplId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTplTitle, subject: newTplSubject, body: newTplBody }) }); if (res.ok) { setEditingTplId(null); setNewTplTitle(''); setNewTplSubject(''); setNewTplBody(''); fetchEmailTemplates(); } };
-  const handleDeleteTemplate = async () => { if (!selectedTplId || !window.confirm("Törlöd?")) return; const res = await fetch(`${BACKEND_URL}/api/email-templates/${selectedTplId}`, { method: 'DELETE' }); if (res.ok) { setSelectedTplId(''); fetchEmailTemplates(); } };
-  const sendEmail = async () => { if (!selectedPartner.email) return alert('Nincs email!'); if (!selectedTplId) return alert('Válassz sablont!'); const tpl = emailTemplates.find(t => t.id.toString() === selectedTplId); if (tpl) { await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/logs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note: `E-mail küldve: ${tpl.title}`, action_type: 'E-MAIL KÜLDVE' }) }); fetchLogs(selectedPartner.id); fetchPartners(); window.location.href = `mailto:${selectedPartner.email}?subject=${encodeURIComponent(tpl.subject)}&body=${encodeURIComponent(tpl.body)}`; } };
+  const handleDeleteTemplate = async () => { if (!selectedTplId || !window.confirm("Törlöd a sablont?")) return; const res = await fetch(`${BACKEND_URL}/api/email-templates/${selectedTplId}`, { method: 'DELETE' }); if (res.ok) { setSelectedTplId(''); fetchEmailTemplates(); } };
+  const sendEmail = async () => { if (!selectedPartner.email) return alert('Nincs email cím megadva!'); if (!selectedTplId) return alert('Válassz sablont!'); const tpl = emailTemplates.find(t => t.id.toString() === selectedTplId); if (tpl) { await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/logs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note: `E-mail küldve: ${tpl.title}`, action_type: 'E-MAIL KÜLDVE' }) }); fetchLogs(selectedPartner.id); fetchPartners(); window.location.href = `mailto:${selectedPartner.email}?subject=${encodeURIComponent(tpl.subject)}&body=${encodeURIComponent(tpl.body)}`; } };
 
   const filteredPartners = partners.filter(p => {
     const term = searchTerm.toLowerCase();
@@ -177,31 +176,31 @@ function App() {
   const totalPages = Math.ceil(filteredPartners.length / itemsPerPage);
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '1400px', margin: '0 auto', background: '#fff', color: '#000' }}>
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '1400px', margin: '0 auto', background: '#f4f6f9', color: '#333', minHeight: '100vh' }}>
       
       {showStatusModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ background: '#fff', padding: '30px', border: '4px solid #000', width: '500px' }}>
-                <h2 style={{ textTransform: 'uppercase', marginTop: 0, borderBottom: '2px solid #000', paddingBottom: '10px' }}>Státusz Váltás: {pendingStatus}</h2>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ background: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.2)', width: '500px', borderTop: '4px solid #ffc107' }}>
+                <h2 style={{ marginTop: 0, color: '#333', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>🔄 Státusz Váltás: {pendingStatus}</h2>
                 <form onSubmit={executeStatusChange}>
                     {pendingStatus !== '12. Teljesített' && pendingStatus !== '13. Elveszített' && (
-                        <div style={{ marginBottom: '15px' }}><label style={{ fontWeight: 'bold' }}>Következő interakció *</label><br/><input type="date" required value={triggerData.next_interaction} onChange={e => setTriggerData({...triggerData, next_interaction: e.target.value})} style={{ width: '100%', padding: '10px', border: '2px solid #000' }}/></div>
+                        <div style={{ marginBottom: '15px' }}><label style={{ fontWeight: 'bold', fontSize: '13px' }}>📅 Következő interakció határideje *</label><br/><input type="date" required value={triggerData.next_interaction} onChange={e => setTriggerData({...triggerData, next_interaction: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}/></div>
                     )}
                     {pendingStatus === '13. Elveszített' && (
-                        <div style={{ marginBottom: '15px' }}><label style={{ fontWeight: 'bold' }}>INDOKLÁS *</label><br/><select required value={triggerData.reason} onChange={e => setTriggerData({...triggerData, reason: e.target.value})} style={{ width: '100%', padding: '10px', border: '2px solid #000', marginBottom: '5px' }}><option value="">Válassz...</option>{LOST_REASONS.map(r => <option key={r} value={r}>{r}</option>)}</select><input type="text" placeholder="Részletek..." required value={triggerData.details} onChange={e => setTriggerData({...triggerData, details: e.target.value})} style={{ width: '100%', padding: '10px', border: '1px solid #000' }}/></div>
+                        <div style={{ marginBottom: '15px' }}><label style={{ fontWeight: 'bold', fontSize: '13px', color: '#dc3545' }}>❌ KÖTELEZŐ INDOKLÁS *</label><br/><select required value={triggerData.reason} onChange={e => setTriggerData({...triggerData, reason: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', marginBottom: '8px' }}><option value="">Válassz okot...</option>{LOST_REASONS.map(r => <option key={r} value={r}>{r}</option>)}</select><input type="text" placeholder="Részletek..." required value={triggerData.details} onChange={e => setTriggerData({...triggerData, details: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}/></div>
                     )}
                     {pendingStatus === '3. Tárgyalás' && (
-                        <div style={{ marginBottom: '15px' }}><label style={{ fontWeight: 'bold' }}>Tárgyalás dátuma *</label><br/><input type="date" required value={triggerData.meeting_date} onChange={e => setTriggerData({...triggerData, meeting_date: e.target.value})} style={{ width: '100%', padding: '10px', border: '2px solid #000', marginBottom: '5px' }}/><input type="text" placeholder="Mi történt eddig? *" required value={triggerData.details} onChange={e => setTriggerData({...triggerData, details: e.target.value})} style={{ width: '100%', padding: '10px', border: '1px solid #000' }}/></div>
+                        <div style={{ marginBottom: '15px' }}><label style={{ fontWeight: 'bold', fontSize: '13px' }}>🗓️ Tárgyalás pontos dátuma *</label><br/><input type="date" required value={triggerData.meeting_date} onChange={e => setTriggerData({...triggerData, meeting_date: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', marginBottom: '8px', boxSizing: 'border-box' }}/><input type="text" placeholder="Mi történt eddig? *" required value={triggerData.details} onChange={e => setTriggerData({...triggerData, details: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}/></div>
                     )}
                     {pendingStatus === '5. Szerződésírás' && (
-                        <div style={{ marginBottom: '15px' }}><label style={{ fontWeight: 'bold' }}>Fizetési konstrukció *</label><br/><select required value={triggerData.payment_type} onChange={e => setTriggerData({...triggerData, payment_type: e.target.value})} style={{ width: '100%', padding: '10px', border: '2px solid #000', marginBottom: '5px' }}><option value="">Válassz...</option><option value="Egyösszegű">Egyösszegű</option><option value="Részletfizetés">Részletfizetés</option></select><label style={{ fontWeight: 'bold' }}>Meddig várunk döntésre? *</label><br/><input type="date" required value={triggerData.expected_decision} onChange={e => setTriggerData({...triggerData, expected_decision: e.target.value})} style={{ width: '100%', padding: '10px', border: '2px solid #000' }}/></div>
+                        <div style={{ marginBottom: '15px' }}><label style={{ fontWeight: 'bold', fontSize: '13px' }}>💳 Fizetési konstrukció *</label><br/><select required value={triggerData.payment_type} onChange={e => setTriggerData({...triggerData, payment_type: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', marginBottom: '8px' }}><option value="">Válassz...</option><option value="Egyösszegű">Egyösszegű</option><option value="Részletfizetés">Részletfizetés</option></select><label style={{ fontWeight: 'bold', fontSize: '13px' }}>⏳ Meddig várunk döntésre? *</label><br/><input type="date" required value={triggerData.expected_decision} onChange={e => setTriggerData({...triggerData, expected_decision: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}/></div>
                     )}
                     {pendingStatus === '8. Fizetésre vár' && (
-                        <div style={{ marginBottom: '15px' }}><label style={{ fontWeight: 'bold' }}>Fizetési Határidő *</label><br/><input type="date" required value={triggerData.expected_payment} onChange={e => setTriggerData({...triggerData, expected_payment: e.target.value})} style={{ width: '100%', padding: '10px', border: '2px solid #000' }}/></div>
+                        <div style={{ marginBottom: '15px' }}><label style={{ fontWeight: 'bold', fontSize: '13px' }}>💰 Fizetési Határidő *</label><br/><input type="date" required value={triggerData.expected_payment} onChange={e => setTriggerData({...triggerData, expected_payment: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}/></div>
                     )}
                     <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-                        <button type="submit" style={{ flex: 1, padding: '15px', background: '#000', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>VÉGREHAJTÁS</button>
-                        <button type="button" onClick={() => setShowStatusModal(false)} style={{ padding: '15px', background: '#fff', color: '#000', fontWeight: 'bold', border: '2px solid #000', cursor: 'pointer' }}>MÉGSE</button>
+                        <button type="submit" style={{ flex: 1, padding: '12px', background: '#28a745', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>✓ Végrehajtás</button>
+                        <button type="button" onClick={() => setShowStatusModal(false)} style={{ padding: '12px', background: '#6c757d', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Mégse</button>
                     </div>
                 </form>
             </div>
@@ -209,37 +208,38 @@ function App() {
       )}
 
       {editingPartner && (
-        <div style={{ background: '#f5f5f5', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '2px solid #000' }}>
-          <h3 style={{ borderBottom: '2px solid #000', paddingBottom: '10px' }}>SZERKESZTÉS: {editingPartner.company_name}</h3>
+        <div style={{ background: '#fff3cd', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #ffeeba' }}>
+          <h3 style={{ borderBottom: '2px solid #ffeeba', paddingBottom: '10px', color: '#856404', marginTop: 0 }}>✏️ Szerkesztés: {editingPartner.company_name}</h3>
           <form onSubmit={handleSaveEdit}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
-              <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>Cégnév</label><br/><input value={editingPartner.company_name} onChange={(e) => setEditingPartner({...editingPartner, company_name: e.target.value})} required style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>
-              <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>Személyiségtípus</label><br/><select value={editingPartner.personality_type || 'Nincs megadva'} onChange={(e) => setEditingPartner({...editingPartner, personality_type: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #000' }}>{PERSONALITIES.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
-              <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>Meglévő rendszer</label><br/><input value={editingPartner.existing_system || ''} onChange={(e) => setEditingPartner({...editingPartner, existing_system: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>
-              <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>Csomag</label><br/><input value={editingPartner.chosen_package || ''} onChange={(e) => setEditingPartner({...editingPartner, chosen_package: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>
-              <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>Konzílium</label><br/><input value={editingPartner.consultation_count || ''} onChange={(e) => setEditingPartner({...editingPartner, consultation_count: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>
-              <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>Kedvezmény Volt?</label><br/><input type="checkbox" checked={editingPartner.discount_applied || false} onChange={(e) => setEditingPartner({...editingPartner, discount_applied: e.target.checked})} style={{ transform: 'scale(1.5)', marginTop: '10px' }}/></div>
-              {editingPartner.discount_applied && <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '11px', fontWeight: 'bold' }}>Kedvezmény oka</label><br/><input value={editingPartner.discount_details || ''} onChange={(e) => setEditingPartner({...editingPartner, discount_details: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #000' }}/></div>}
+              <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév</label><br/><input value={editingPartner.company_name} onChange={(e) => setEditingPartner({...editingPartner, company_name: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}/></div>
+              <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Személyiségtípus</label><br/><select value={editingPartner.personality_type || 'Nincs megadva'} onChange={(e) => setEditingPartner({...editingPartner, personality_type: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}>{PERSONALITIES.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+              <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Meglévő rendszer</label><br/><input value={editingPartner.existing_system || ''} onChange={(e) => setEditingPartner({...editingPartner, existing_system: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}/></div>
+              <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Csomag</label><br/><input value={editingPartner.chosen_package || ''} onChange={(e) => setEditingPartner({...editingPartner, chosen_package: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}/></div>
+              <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Konzílium</label><br/><input value={editingPartner.consultation_count || ''} onChange={(e) => setEditingPartner({...editingPartner, consultation_count: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}/></div>
+              <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kedvezmény volt?</label><br/><input type="checkbox" checked={editingPartner.discount_applied || false} onChange={(e) => setEditingPartner({...editingPartner, discount_applied: e.target.checked})} style={{ transform: 'scale(1.4)', marginTop: '8px' }}/></div>
+              {editingPartner.discount_applied && <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kedvezmény oka</label><br/><input value={editingPartner.discount_details || ''} onChange={(e) => setEditingPartner({...editingPartner, discount_details: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}/></div>}
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button type="submit" style={{ padding: '10px 20px', background: '#000', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>Mentés</button>
-              <button type="button" onClick={() => setEditingPartner(null)} style={{ padding: '10px 20px', background: '#fff', border: '2px solid #000', fontWeight: 'bold', cursor: 'pointer' }}>Mégse</button>
+              <button type="submit" style={{ padding: '8px 16px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>💾 Mentés</button>
+              <button type="button" onClick={() => setEditingPartner(null)} style={{ padding: '8px 16px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>Mégse</button>
             </div>
           </form>
         </div>
       )}
 
-      <h1 style={{ textTransform: 'uppercase', letterSpacing: '2px', borderBottom: '4px solid #000', paddingBottom: '10px' }}>TOP 0.1% Értékesítési Gépezet</h1>
+      <h1 style={{ color: '#333', borderBottom: '3px solid #007bff', paddingBottom: '10px', marginTop: 0 }}>📊 CRM</h1>
       <AddPartnerForm onPartnerAdded={fetchPartners} />
 
-      <div style={{ background: '#fff', border: '2px solid #000', padding: '20px', marginBottom: '30px' }}>
-          <h3 style={{ marginTop: 0, color: 'red', textTransform: 'uppercase', borderBottom: '2px solid red', paddingBottom: '10px' }}>🔥 MAI ÉS LEJÁRT FELADATOK ({todayTasks.length})</h3>
+      {/* NAPI ÉS LEJÁRT FELADATOK */}
+      <div style={{ background: '#fff5f5', border: '1px solid #f5c6cb', padding: '20px', borderRadius: '8px', marginBottom: '30px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+          <h3 style={{ marginTop: 0, color: '#dc3545', borderBottom: '2px solid #f5c6cb', paddingBottom: '10px' }}>🔥 Mai & Lejárt Feladatok ({todayTasks.length})</h3>
           {todayTasks.length === 0 ? (
-              <p style={{ fontWeight: 'bold' }}>Nincs aktív feladat. (Vagy hazudsz magadnak, vagy tényleg mindent megcsináltál.)</p>
+              <p style={{ color: '#28a745', fontWeight: 'bold', margin: 0 }}>🎉 Szép munka! Nincs mára esedékes vagy lejárt feladatod.</p>
           ) : (
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                   {todayTasks.map(t => (
-                      <li key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', border: '1px solid #000', marginBottom: '10px', background: '#ffe6e6' }}>
+                      <li key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '12px', background: '#fff', borderRadius: '6px', border: '1px solid #f5c6cb', marginBottom: '8px' }}>
                           <input type="checkbox" onChange={async () => { 
                               await fetch(`${BACKEND_URL}/api/partners/${t.partner_id}/tasks/${t.id}/complete`, { method: 'PUT' }); 
                               fetchTodayTasks(); 
@@ -247,11 +247,11 @@ function App() {
                               if (selectedPartner && selectedPartner.id === t.partner_id) {
                                   fetchTasksAndLogs(t.partner_id);
                               } 
-                          }} style={{ transform: 'scale(1.5)', cursor: 'pointer' }} />
+                          }} style={{ transform: 'scale(1.4)', cursor: 'pointer' }} title="Készre jelölés" />
                           <div>
-                              <strong style={{ display: 'block', fontSize: '16px', textTransform: 'uppercase' }}>{t.company_name}</strong>
-                              <span>{t.description}</span>
-                              <span style={{ marginLeft: '15px', fontSize: '12px', color: 'red', fontWeight: 'bold' }}>HATÁRIDŐ: {t.due_date}</span>
+                              <strong style={{ display: 'block', fontSize: '15px', color: '#333' }}>🏢 {t.company_name}</strong>
+                              <span style={{ fontSize: '14px' }}>📌 {t.description}</span>
+                              <span style={{ marginLeft: '15px', fontSize: '12px', color: '#dc3545', fontWeight: 'bold', background: '#ffe6e6', padding: '2px 6px', borderRadius: '4px' }}>⏳ Határidő: {t.due_date}</span>
                           </div>
                       </li>
                   ))}
@@ -259,30 +259,33 @@ function App() {
           )}
       </div>
 
-      <div style={{ background: '#fff', border: '2px solid #000', padding: '20px', marginBottom: '30px' }}>
+      <div style={{ background: '#fff', border: '1px solid #ddd', padding: '20px', borderRadius: '8px', marginBottom: '30px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+        <h2 style={{ marginTop: 0, color: '#333' }}>📋 Partnerek Listája</h2>
         <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-          <input type="text" placeholder="Keresés..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ flex: 2, padding: '10px', border: '1px solid #000' }}/>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ flex: 1, padding: '10px', border: '1px solid #000' }}>
-            <option value="">ÖSSZES STÁTUSZ</option>
+          <input type="text" placeholder="🔍 Keresés (cégnév, döntéshozó, csomag, tel, email...)..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ flex: 2, padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }}/>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }}>
+            <option value="">Összes státusz</option>
             {STATUSES.map(st => <option key={st} value={st}>{st}</option>)}
           </select>
         </div>
-        <table border="1" cellPadding="10" style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid #000' }}>
-          <thead style={{ background: '#000', color: '#fff' }}><tr><th>Cégnév / Csomag</th><th>Státusz</th><th>SLA / Inaktivitás</th><th>Művelet</th></tr></thead>
+        <table border="1" cellPadding="10" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px', borderColor: '#ddd' }}>
+          <thead style={{ background: '#343a40', color: '#fff' }}><tr><th>Cégnév / Csomag</th><th>Státusz</th><th>SLA / Inaktivitás</th><th>Műveletek</th></tr></thead>
           <tbody>
-            {currentPartners.length === 0 ? (<tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Nincs találat.</td></tr>) : (
+            {currentPartners.length === 0 ? (<tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Nincs találat.</td></tr>) : (
               currentPartners.map(p => {
                 const inactiveDays = getDaysSince(p.last_interaction_at);
                 const isActive = !['12. Teljesített', '13. Elveszített'].includes(p.status);
                 const isBreach = isActive && inactiveDays >= 3;
                 return (
-                  <tr key={p.id} style={{ background: isBreach ? '#ffe6e6' : '#fff' }}>
-                    <td><strong style={{ fontSize: '15px' }}>{p.company_name}</strong><br/><span style={{ fontSize: '12px', color: '#666' }}>{p.chosen_package} | {p.personality_type}</span></td>
-                    <td><strong>{p.status}</strong></td>
-                    <td style={{ color: isBreach ? 'red' : 'black', fontWeight: isBreach ? 'bold' : 'normal' }}>{inactiveDays} napja érintetlen</td>
+                  <tr key={p.id} style={{ background: isBreach ? '#fff5f5' : '#fff', transition: 'background 0.2s' }}>
+                    <td><strong style={{ fontSize: '15px', color: '#007bff' }}>{p.company_name}</strong><br/><span style={{ fontSize: '12px', color: '#666' }}>📦 {p.chosen_package || 'Nincs csomag'} | 🧠 {p.personality_type || 'Nincs'}</span></td>
+                    <td><span style={{ padding: '4px 8px', background: '#e9ecef', borderRadius: '4px', fontWeight: 'bold', fontSize: '12px' }}>🏷️ {p.status}</span></td>
+                    <td style={{ color: isBreach ? '#dc3545' : '#28a745', fontWeight: isBreach ? 'bold' : 'normal' }}>
+                        {isBreach ? `⚠️ ${inactiveDays} napja inaktív!` : `✅ ${inactiveDays} napja aktív`}
+                    </td>
                     <td style={{ display: 'flex', gap: '5px' }}>
-                        <button onClick={() => handleSelectPartner(p)} style={{ background: '#000', color: '#fff', padding: '8px 15px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>MEGNYITÁS</button>
-                        <button onClick={() => setEditingPartner(p)} style={{ background: '#fff', color: '#000', border: '2px solid #000', padding: '8px 15px', cursor: 'pointer', fontWeight: 'bold' }}>Szerkeszt</button>
+                        <button onClick={() => handleSelectPartner(p)} style={{ background: '#007bff', color: '#fff', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>📂 Munkaterület</button>
+                        <button onClick={() => setEditingPartner(p)} style={{ background: '#ffc107', color: '#000', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>✏️ Szerkeszt</button>
                     </td>
                   </tr>
                 )
@@ -293,90 +296,100 @@ function App() {
 
         {totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginTop: '15px' }}>
-            <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} style={{ padding: '8px 16px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}>← Előző</button>
+            <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} style={{ padding: '8px 16px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', borderRadius: '4px', border: '1px solid #ccc' }}>← Előző</button>
             <span>Oldal: <strong>{currentPage}</strong> / {totalPages}</span>
-            <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} style={{ padding: '8px 16px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}>Következő →</button>
+            <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} style={{ padding: '8px 16px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', borderRadius: '4px', border: '1px solid #ccc' }}>Következő →</button>
           </div>
         )}
       </div>
 
       {selectedPartner && (
-        <div id="partner-workspace" style={{ borderTop: '6px solid #000', paddingTop: '30px', marginTop: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+        <div id="partner-workspace" style={{ borderTop: '4px solid #007bff', paddingTop: '30px', marginTop: '20px', background: '#fff', padding: '25px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '2px solid #eee', paddingBottom: '15px' }}>
              <div>
-                <h2 style={{ margin: 0, textTransform: 'uppercase', fontSize: '28px' }}>{selectedPartner.company_name}</h2>
-                <div style={{ marginTop: '10px', display: 'flex', gap: '20px' }}>
-                    <div style={{ border: '2px solid #000', padding: '10px', background: '#f5f5f5' }}><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold' }}>LEAD KORA</span><span style={{ fontSize: '20px', fontWeight: 'bold' }}>{getDaysSince(selectedPartner.created_at)} NAP</span></div>
-                    <div style={{ border: `2px solid ${getDaysSince(selectedPartner.last_interaction_at) >= 3 ? 'red' : '#000'}`, padding: '10px', background: getDaysSince(selectedPartner.last_interaction_at) >= 3 ? '#ffe6e6' : '#f5f5f5' }}><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', color: getDaysSince(selectedPartner.last_interaction_at) >= 3 ? 'red' : '#000' }}>INAKTÍV NAPOK</span><span style={{ fontSize: '20px', fontWeight: 'bold', color: getDaysSince(selectedPartner.last_interaction_at) >= 3 ? 'red' : '#000' }}>{getDaysSince(selectedPartner.last_interaction_at)} NAP</span></div>
+                <h2 style={{ margin: 0, color: '#333', fontSize: '26px' }}>🏢 {selectedPartner.company_name}</h2>
+                <div style={{ marginTop: '10px', display: 'flex', gap: '15px' }}>
+                    <div style={{ background: '#e9ecef', padding: '8px 12px', borderRadius: '6px', border: '1px solid #ced4da' }}><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', color: '#666' }}>⏳ LEAD KORA</span><span style={{ fontSize: '16px', fontWeight: 'bold' }}>{getDaysSince(selectedPartner.created_at)} nap</span></div>
+                    <div style={{ background: getDaysSince(selectedPartner.last_interaction_at) >= 3 ? '#ffe6e6' : '#e9ecef', padding: '8px 12px', borderRadius: '6px', border: `1px solid ${getDaysSince(selectedPartner.last_interaction_at) >= 3 ? '#f5c6cb' : '#ced4da'}` }}>
+                        <span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', color: getDaysSince(selectedPartner.last_interaction_at) >= 3 ? '#dc3545' : '#666' }}>⚡ INAKTÍV IDŐ</span>
+                        <span style={{ fontSize: '16px', fontWeight: 'bold', color: getDaysSince(selectedPartner.last_interaction_at) >= 3 ? '#dc3545' : '#333' }}>{getDaysSince(selectedPartner.last_interaction_at)} nap</span>
+                    </div>
                 </div>
              </div>
              <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={() => handleDeletePartner(selectedPartner.id)} style={{ padding: '10px', border: '2px solid red', background: 'transparent', color: 'red', fontWeight: 'bold', cursor: 'pointer' }}>TÖRLÉS</button>
-                <button onClick={handleGhosting} style={{ padding: '15px 25px', background: 'red', color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>☠️ ZOMBIE LEAD (Eltűnt)</button>
+                <button onClick={() => handleDeletePartner(selectedPartner.id)} style={{ padding: '10px 15px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>🗑️ Törlés</button>
+                <button onClick={handleGhosting} style={{ padding: '10px 15px', background: '#6f42c1', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>☠️ Zombie Lead (Eltűnt)</button>
              </div>
           </div>
 
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
              <div style={{ flex: '1 1 500px' }}>
                 
-                <div style={{ border: '2px solid #000', padding: '20px', marginBottom: '20px', background: '#f9f9f9' }}>
-                    <h3 style={{ marginTop: 0, borderBottom: '2px solid #000', paddingBottom: '10px' }}>1. STÁTUSZVÁLTÁS ÉS FAL</h3>
-                    <select value={selectedPartner.status} onChange={handleStatusChangeInit} style={{ width: '100%', padding: '15px', fontSize: '16px', border: '2px solid #000', fontWeight: 'bold', marginBottom: '10px' }}>{STATUSES.map(st => <option key={st} value={st}>{st}</option>)}</select>
+                {/* STÁTUSZVÁLTÁS & FAL */}
+                <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '6px', marginBottom: '20px', border: '1px solid #ced4da' }}>
+                    <h4 style={{ marginTop: 0, color: '#495057', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>🔄 Státusz Váltás & Gyors Megjegyzés</h4>
+                    <select value={selectedPartner.status} onChange={handleStatusChangeInit} style={{ width: '100%', padding: '12px', fontSize: '15px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'bold', marginBottom: '10px', background: '#fff' }}>{STATUSES.map(st => <option key={st} value={st}>{st}</option>)}</select>
                     <div style={{ display: 'flex', gap: '5px' }}>
-                        <input type="text" placeholder="Gyors megjegyzés a falra..." value={plainNote} onChange={(e) => setPlainNote(e.target.value)} style={{ flex: 1, padding: '10px', border: '1px solid #000' }}/>
-                        <button onClick={handleAddPlainNote} style={{ padding: '10px 20px', background: '#000', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>Rögzítés</button>
+                        <input type="text" placeholder="💬 Írj egy gyors megjegyzést a falra..." value={plainNote} onChange={(e) => setPlainNote(e.target.value)} style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}/>
+                        <button onClick={handleAddPlainNote} style={{ padding: '10px 20px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>Rögzítés</button>
                     </div>
                 </div>
 
-                <div style={{ border: '2px solid #000', padding: '20px', marginBottom: '20px' }}>
-                    <h3 style={{ marginTop: 0, borderBottom: '2px solid #000', paddingBottom: '10px' }}>2. KÖTELEZŐ FELADATOK</h3>
+                {/* KÖTELEZŐ FELADATOK */}
+                <div style={{ background: '#e9ecef', padding: '15px', borderRadius: '6px', marginBottom: '20px', border: '1px solid #ced4da' }}>
+                    <h4 style={{ marginTop: 0, color: '#495057', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>📌 Kötelező Feladatok</h4>
                     <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
-                        <input type="text" placeholder="Új feladat..." value={newTaskDesc} onChange={(e) => setNewTaskDesc(e.target.value)} style={{ flex: 2, padding: '10px', border: '1px solid #000' }}/>
-                        <input type="date" value={newTaskDate} onChange={(e) => setNewTaskDate(e.target.value)} style={{ flex: 1, padding: '10px', border: '1px solid #000' }}/>
-                        <button onClick={handleAddTask} style={{ padding: '10px 20px', background: '#000', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>Hozzáad</button>
+                        <input type="text" placeholder="Új feladat leírása..." value={newTaskDesc} onChange={(e) => setNewTaskDesc(e.target.value)} style={{ flex: 2, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}/>
+                        <input type="date" value={newTaskDate} onChange={(e) => setNewTaskDate(e.target.value)} style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}/>
+                        <button onClick={handleAddTask} style={{ padding: '10px 20px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>Hozzáad</button>
                     </div>
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                         {tasks.map(t => (
-                            <li key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', border: '1px solid #000', marginBottom: '10px', background: (t.due_date < getTodayStr() && !t.is_completed) ? '#ffe6e6' : '#fff' }}>
-                                <input type="checkbox" checked={t.is_completed} disabled={t.is_completed} onChange={() => completeTask(t.id)} style={{ transform: 'scale(1.5)', cursor: t.is_completed ? 'default' : 'pointer' }} />
-                                <div><strong style={{ display: 'block', fontSize: '16px', textDecoration: t.is_completed ? 'line-through' : 'none', color: t.is_completed ? '#aaa' : '#000' }}>{t.description}</strong><span style={{ fontSize: '12px', color: (t.due_date < getTodayStr() && !t.is_completed) ? 'red' : '#000', fontWeight: 'bold' }}>HATÁRIDŐ: {t.due_date}</span></div>
+                            <li key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#fff', borderRadius: '4px', border: '1px solid #ccc', marginBottom: '8px' }}>
+                                <input type="checkbox" checked={t.is_completed} disabled={t.is_completed} onChange={() => completeTask(t.id)} style={{ transform: 'scale(1.4)', cursor: t.is_completed ? 'default' : 'pointer' }} />
+                                <div>
+                                    <strong style={{ display: 'block', fontSize: '15px', textDecoration: t.is_completed ? 'line-through' : 'none', color: t.is_completed ? '#aaa' : '#333' }}>{t.description}</strong>
+                                    <span style={{ fontSize: '12px', color: (t.due_date < getTodayStr() && !t.is_completed) ? '#dc3545' : '#666', fontWeight: 'bold' }}>📅 Határidő: {t.due_date}</span>
+                                </div>
                             </li>
                         ))}
                     </ul>
                 </div>
 
-                <div style={{ border: '2px solid #000', padding: '20px', marginBottom: '20px', background: '#f5f5f5' }}>
-                    <h3 style={{ marginTop: 0, borderBottom: '2px solid #000', paddingBottom: '10px' }}>3. E-MAIL ÉS SABLONOK</h3>
+                {/* E-MAIL SABLONOK */}
+                <div style={{ background: '#eef9f0', padding: '15px', borderRadius: '6px', marginBottom: '20px', border: '1px solid #c3e6cb' }}>
+                    <h4 style={{ marginTop: 0, color: '#155724', borderBottom: '1px solid #c3e6cb', paddingBottom: '8px' }}>✉️ E-mail küldés (Sablonok)</h4>
                     <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
-                        <select value={selectedTplId} onChange={(e) => { setSelectedTplId(e.target.value); setEditingTplId(null); }} style={{ flex: 1, padding: '10px', border: '1px solid #000' }}><option value="">Válassz sablont...</option>{emailTemplates.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</select>
-                        <button onClick={sendEmail} style={{ padding: '10px 20px', background: '#000', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>✉ KÜLDÉS</button>
-                        {selectedTplId && ( <button onClick={handleDeleteTemplate} style={{ padding: '10px 15px', background: 'red', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>✖</button> )}
+                        <select value={selectedTplId} onChange={(e) => { setSelectedTplId(e.target.value); setEditingTplId(null); }} style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}><option value="">Válassz sablont...</option>{emailTemplates.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}</select>
+                        <button onClick={sendEmail} style={{ padding: '10px 20px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Küldés</button>
+                        {selectedTplId && ( <button onClick={handleDeleteTemplate} style={{ padding: '10px 15px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>✖</button> )}
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <input type="text" placeholder="Sablon neve" value={newTplTitle} onChange={e => setNewTplTitle(e.target.value)} style={{ padding: '8px', border: '1px solid #000' }}/>
-                        <input type="text" placeholder="E-mail tárgya" value={newTplSubject} onChange={e => setNewTplSubject(e.target.value)} style={{ padding: '8px', border: '1px solid #000' }}/>
-                        <textarea placeholder="Szöveg..." value={newTplBody} onChange={e => setNewTplBody(e.target.value)} style={{ padding: '8px', minHeight: '60px', border: '1px solid #000' }}></textarea>
-                        <button onClick={handleSaveTemplate} style={{ padding: '10px', background: '#fff', border: '2px solid #000', fontWeight: 'bold', cursor: 'pointer' }}>ÚJ SABLON MENTÉSE</button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: '#fff', padding: '12px', borderRadius: '4px', border: '1px solid #c3e6cb' }}>
+                        <input type="text" placeholder="Sablon neve" value={newTplTitle} onChange={e => setNewTplTitle(e.target.value)} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}/>
+                        <input type="text" placeholder="E-mail tárgya" value={newTplSubject} onChange={e => setNewTplSubject(e.target.value)} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}/>
+                        <textarea placeholder="Szöveg..." value={newTplBody} onChange={e => setNewTplBody(e.target.value)} style={{ padding: '8px', minHeight: '60px', borderRadius: '4px', border: '1px solid #ccc' }}></textarea>
+                        <button onClick={handleSaveTemplate} style={{ padding: '10px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>💾 Új sablon mentése</button>
                     </div>
                 </div>
 
-                <div style={{ border: '2px solid #000', padding: '20px', background: '#fff' }}>
-                    <h3 style={{ marginTop: 0, borderBottom: '2px solid #000', paddingBottom: '10px' }}>4. DOKUMENTUMOK</h3>
+                {/* DOKUMENTUMOK */}
+                <div style={{ background: '#e8f4f8', padding: '15px', borderRadius: '6px', border: '1px solid #b8daff' }}>
+                    <h4 style={{ marginTop: 0, color: '#0c5460', borderBottom: '1px solid #b8daff', paddingBottom: '8px' }}>📂 Dokumentumok & Playbook</h4>
                     <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
-                        <input type="text" placeholder="Név..." value={newDocName} onChange={e => setNewDocName(e.target.value)} style={{ flex: 1, padding: '10px', border: '1px solid #000' }}/>
-                        <input type="text" placeholder="URL Link..." value={newDocUrl} onChange={e => setNewDocUrl(e.target.value)} style={{ flex: 2, padding: '10px', border: '1px solid #000' }}/>
+                        <input type="text" placeholder="Fájl neve..." value={newDocName} onChange={e => setNewDocName(e.target.value)} style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}/>
+                        <input type="text" placeholder="URL Link..." value={newDocUrl} onChange={e => setNewDocUrl(e.target.value)} style={{ flex: 2, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}/>
                     </div>
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                        <button onClick={() => handleAddDocument('offer')} style={{ flex: 1, padding: '10px', background: '#000', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>+ AJÁNLAT</button>
-                        <button onClick={() => handleAddDocument('contract')} style={{ flex: 1, padding: '10px', background: '#000', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>+ SZERZŐDÉS</button>
-                        <button onClick={() => handleAddDocument('playbook')} style={{ flex: 1, padding: '10px', background: '#000', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>+ PLAYBOOK</button>
+                        <button onClick={() => handleAddDocument('offer')} style={{ flex: 1, padding: '10px', background: '#17a2b8', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>+ Ajánlat</button>
+                        <button onClick={() => handleAddDocument('contract')} style={{ flex: 1, padding: '10px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>+ Szerződés</button>
+                        <button onClick={() => handleAddDocument('playbook')} style={{ flex: 1, padding: '10px', background: '#6f42c1', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>+ Playbook</button>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                         {['offer', 'contract', 'playbook'].map(type => (
-                            <div key={type} style={{ border: '1px solid #000', padding: '10px' }}>
-                                <strong style={{ textTransform: 'uppercase' }}>{type === 'offer' ? 'Ajánlat' : type === 'contract' ? 'Szerződés' : 'Playbook'}</strong>
-                                <ul style={{ paddingLeft: '20px', margin: 0, marginTop: '10px', fontSize: '12px' }}>
-                                    {documents.filter(d => d.doc_type === type).map(d => ( <li key={d.id}><a href={d.doc_url} target="_blank" rel="noreferrer" style={{ color: '#000', fontWeight: 'bold' }}>{d.doc_name}</a> <button onClick={() => handleDeleteDocument(d.id)} style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer', fontWeight: 'bold' }}>✖</button></li> ))}
+                            <div key={type} style={{ background: '#fff', border: '1px solid #b8daff', padding: '10px', borderRadius: '4px' }}>
+                                <strong style={{ textTransform: 'uppercase', fontSize: '12px', color: '#0c5460' }}>{type === 'offer' ? '📄 Ajánlatok' : type === 'contract' ? '🤝 Szerződések' : '📘 Playbook'}</strong>
+                                <ul style={{ paddingLeft: '20px', margin: 0, marginTop: '8px', fontSize: '12px' }}>
+                                    {documents.filter(d => d.doc_type === type).map(d => ( <li key={d.id}><a href={d.doc_url} target="_blank" rel="noreferrer" style={{ color: '#007bff', fontWeight: 'bold' }}>{d.doc_name}</a> <button onClick={() => handleDeleteDocument(d.id)} style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontWeight: 'bold' }}>✖</button></li> ))}
                                 </ul>
                             </div>
                         ))}
@@ -385,12 +398,13 @@ function App() {
 
              </div>
              
-             <div style={{ flex: '1 1 400px', border: '2px solid #000', padding: '20px', background: '#fff' }}>
-                 <h3 style={{ marginTop: 0, borderBottom: '2px solid #000', paddingBottom: '10px' }}>INTERAKCIÓS NAPLÓ (MINDEN LÉPÉS)</h3>
+             {/* TIMELINE */}
+             <div style={{ flex: '1 1 400px', background: '#fff', padding: '20px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                 <h3 style={{ marginTop: 0, color: '#333', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>📜 Interakciós Napló</h3>
                  {logs.map(l => (
-                     <div key={l.id} style={{ borderBottom: '1px dashed #000', padding: '10px 0', background: l.action_type === 'LEJÁRT FELADAT' ? '#ffe6e6' : 'transparent' }}>
-                         <strong style={{ fontSize: '12px', display: 'block', color: l.action_type === 'LEJÁRT FELADAT' ? 'red' : '#000' }}>{new Date(l.created_at).toLocaleString()} | {l.action_type}</strong>
-                         <span style={{ fontSize: '14px' }}>{l.note}</span>
+                     <div key={l.id} style={{ borderBottom: '1px dashed #eee', padding: '10px 0', background: l.action_type === 'LEJÁRT FELADAT' ? '#fff5f5' : 'transparent' }}>
+                         <strong style={{ fontSize: '12px', display: 'block', color: l.action_type === 'LEJÁRT FELADAT' ? '#dc3545' : '#007bff' }}>{new Date(l.created_at).toLocaleString()} | {l.action_type}</strong>
+                         <span style={{ fontSize: '14px', color: '#333' }}>{l.note}</span>
                      </div>
                  ))}
              </div>
