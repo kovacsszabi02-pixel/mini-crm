@@ -12,7 +12,7 @@ process.on('uncaughtException', (err) => console.error('KIVÉTELES HIBA:', err))
 process.on('unhandledRejection', (reason, promise) => console.error('NEM KEZELT PROMISE HIBA:', reason));
 
 // ⚠️ IDE MÁSOLD BE AZ ÚJ GOOGLE APPS SCRIPT WEBHOOK URL-EDET!
-const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyXbyvS7P7hCRlF7f-tyXSLcy7XNvQ4ua5t-Zs0cgzWUTgqZoV-HPztfKTBql7QzULwFQ/exec';
+const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbytG-MduXJ2sCgWKkdMipPZZJAbopjVz0XI5sASh-7SRlWZurT4fBjqB0pBuTjr0XxhPw/exec';
 
 async function syncToSheets(partnerData, action) {
   if (!SHEETS_WEBHOOK_URL) return;
