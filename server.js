@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log("--> FIGYELEM: TOP 0.1% CRM ENGINE FUT (TELJES VERZIÓ)!");
+console.log("--> FIGYELEM: CRM ENGINE FUT (TELJES VERZIÓ)!");
 
 process.on('uncaughtException', (err) => console.error('KIVÉTELES HIBA:', err));
 process.on('unhandledRejection', (reason, promise) => console.error('NEM KEZELT PROMISE HIBA:', reason));
@@ -20,8 +20,7 @@ async function syncToSheets(partnerData, action) {
             method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action, partner: partnerData })
         });
-        const resultText = await response.text();
-        console.log(`[Google Sheets] Státusz: ${response.status} | Cég: ${partnerData.company_name}`);
+        await response.text();
     } catch (err) { console.error('[Google Sheets Hiba]:', err.message); }
 }
 
@@ -127,13 +126,16 @@ app.get('/api/partners/:id/documents', async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM documents WHERE partner_id = $1 ORDER BY created_at DESC', [req.params.id])).rows); } 
     catch (err) { res.status(500).json({ error: err.message }); }
 });
+
 app.post('/api/partners/:id/documents', async (req, res) => {
     try {
-        const newDoc = await pool.query('INSERT INTO documents (partner_id, doc_type, doc_name, doc_url) VALUES ($1, $2, $3, $4) RETURNING *', [req.params.id, req.body.doc_type, req.body.doc_name, req.body.doc_url]);
-        await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', [req.params.id, 'Admin', 'ÚJ DOKUMENTUM', `${req.body.doc_name}`]);
+        const { doc_type, doc_name, doc_url, doc_note } = req.body;
+        const newDoc = await pool.query('INSERT INTO documents (partner_id, doc_type, doc_name, doc_url, doc_note) VALUES ($1, $2, $3, $4, $5) RETURNING *', [req.params.id, doc_type, doc_name, doc_url, doc_note || '']);
+        await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', [req.params.id, 'Admin', 'ÚJ DOKUMENTUM', `${doc_name} ${doc_note ? `(Megjegyzés: ${doc_note})` : ''}`]);
         res.json(newDoc.rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
 app.delete('/api/partners/:partnerId/documents/:docId', async (req, res) => {
     try { await pool.query('DELETE FROM documents WHERE id = $1', [req.params.docId]); res.json({ message: 'Törölve.' }); } 
     catch (err) { res.status(500).json({ error: err.message }); }
@@ -202,6 +204,8 @@ pool.query(`
   ALTER TABLE tasks ADD COLUMN IF NOT EXISTS flagged_overdue BOOLEAN DEFAULT false;
 
   CREATE TABLE IF NOT EXISTS documents (id SERIAL PRIMARY KEY, partner_id INT, doc_type TEXT, doc_name TEXT, doc_url TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+  ALTER TABLE documents ADD COLUMN IF NOT EXISTS doc_note TEXT;
+
   CREATE TABLE IF NOT EXISTS audit_logs (id SERIAL PRIMARY KEY, partner_id INT, user_name TEXT, action_type TEXT, old_status TEXT, new_status TEXT, note TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS email_templates (id SERIAL PRIMARY KEY, title TEXT NOT NULL, subject TEXT, body TEXT);
 `).then(() => console.log("✔ Adatbázis motor élesítve.")).catch(err => console.error("❌ Séma hiba:", err));
