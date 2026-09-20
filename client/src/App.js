@@ -155,7 +155,13 @@ function App() {
 
  if (pendingStatus === '2. Kapcsolatfelvétel alatt') await postTask('Megkeresés (2 munkanapon belül)', getWorkingDaysLater(2));
  if (pendingStatus === '3. Tárgyalás' && triggerData.meeting_date) await postTask('Biztosító SMS küldése', addDays(triggerData.meeting_date, -1));
- if (pendingStatus === '4. Ajánlat kiküldés') await postTask('Ajánlat megírása és elküldése', getTodayStr());
+ 
+ // ==== ITT VAN AZ ÚJ DUPLA FELADAT KIOSZTÁS ====
+ if (pendingStatus === '4. Ajánlat kiküldés') {
+     await postTask('Ajánlat megírása és elküldése', getTodayStr());
+     await postTask('Árajánlat utánkövetése (Várni a válaszra)', triggerData.next_interaction || addDays(getTodayStr(), 2));
+ }
+ 
  if (pendingStatus === '5. Szerződésírás') await postTask('Szerződés megírása és elküldése', getTodayStr());
  if (pendingStatus === '6. Döntésre vár') await postTask('Döntés utánkövetése', triggerData.expected_decision || getWorkingDaysLater(2));
  if (pendingStatus === '7. Díjbekérő') await postTask('Díjbekérő kiállítása és elküldése', getTodayStr());
