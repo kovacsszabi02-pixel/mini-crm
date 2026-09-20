@@ -11,7 +11,7 @@ console.log("--> FIGYELEM: CRM ENGINE FUT (TELJES VERZIÓ)!");
 process.on('uncaughtException', (err) => console.error('KIVÉTELES HIBA:', err));
 process.on('unhandledRejection', (reason, promise) => console.error('NEM KEZELT PROMISE HIBA:', reason));
 
-const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxQgeLWo1iLA_9pEm5_Njj1k330wVqwviw5Oj2Bp-F97-6UQL0oNEz5af5yWzAo5AxK/exec'; 
+const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyXbyvS7P7hCRlF7f-tyXSLcy7XNvQ4ua5t-Zs0cgzWUTgqZoV-HPztfKTBql7QzULwFQ/exec'; 
 
 async function syncToSheets(partnerData, action) {
     if (!SHEETS_WEBHOOK_URL) return;

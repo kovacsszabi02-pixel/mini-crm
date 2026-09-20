@@ -19,29 +19,50 @@ const getDaysSince = (dateString) => { if (!dateString) return 0; return Math.fl
 
 function AddPartnerForm({ onPartnerAdded, theme }) {
  const [formData, setFormData] = useState({ company_name: '', contact_person: '', phone: '', email: '', website: '', revenue: '', tax_number: '', billing_address: '', headquarters: '', manager: '', accepted_offer: '', chosen_package: '', addons: '', personality_type: 'Nincs megadva', existing_system: '', consultation_count: '', discount_applied: false, discount_details: '' });
+ 
  const handleChange = (e) => { const { name, value, type, checked } = e.target; if (name === 'phone') { setFormData(prev => ({ ...prev, [name]: value.replace(/[^0-9+\s]/g, '') })); return; } setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value })); };
  const handleSubmit = async (e) => { e.preventDefault(); await fetch(`${BACKEND_URL}/api/partners`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) }); setFormData({ company_name: '', contact_person: '', phone: '', email: '', website: '', revenue: '', tax_number: '', billing_address: '', headquarters: '', manager: '', accepted_offer: '', chosen_package: '', addons: '', personality_type: 'Nincs megadva', existing_system: '', consultation_count: '', discount_applied: false, discount_details: '' }); onPartnerAdded(); };
+
+ const inputStyle = { width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText };
 
  return (
  <div style={{ background: theme.cardBg, color: theme.text, padding: '20px', borderRadius: '8px', marginBottom: '20px', border: `1px solid ${theme.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
  <h3 style={{ borderBottom: '2px solid #007bff', paddingBottom: '10px', color: '#007bff', marginTop: 0 }}>➕ Új Partner Rögzítése</h3>
  <form onSubmit={handleSubmit}>
+ 
  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
- <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév *</label><br/><input name="company_name" value={formData.company_name} onChange={handleChange} required style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>
- <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Döntéshozó *</label><br/><input name="contact_person" value={formData.contact_person} onChange={handleChange} required style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>
- <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Telefonszám *</label><br/><input name="phone" value={formData.phone} onChange={handleChange} required style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>
- <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email</label><br/><input name="email" type="email" value={formData.email} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>
- <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Személyiségtípus</label><br/><select name="personality_type" value={formData.personality_type} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}>{PERSONALITIES.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
- <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Meglévő Rendszer</label><br/><input name="existing_system" value={formData.existing_system} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>
+ <div style={{ flex: '1 1 100%' }}><strong style={{ fontSize: '13px', color: theme.text, borderBottom: `1px solid ${theme.border}`, display: 'block', paddingBottom: '5px' }}>👤 Alapadatok & Elérhetőségek</strong></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév *</label><br/><input name="company_name" value={formData.company_name} onChange={handleChange} required style={inputStyle}/></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Döntéshozó *</label><br/><input name="contact_person" value={formData.contact_person} onChange={handleChange} required style={inputStyle}/></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Telefonszám *</label><br/><input name="phone" value={formData.phone} onChange={handleChange} required style={inputStyle}/></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email</label><br/><input name="email" type="email" value={formData.email} onChange={handleChange} style={inputStyle}/></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Weboldal</label><br/><input name="website" value={formData.website} onChange={handleChange} style={inputStyle}/></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Értékesítő (Manager)</label><br/><input name="manager" value={formData.manager} onChange={handleChange} style={inputStyle}/></div>
  </div>
+
+ <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
+ <div style={{ flex: '1 1 100%' }}><strong style={{ fontSize: '13px', color: theme.text, borderBottom: `1px solid ${theme.border}`, display: 'block', paddingBottom: '5px' }}>🏢 Cégadatok & Pénzügy</strong></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Árbevétel</label><br/><input name="revenue" value={formData.revenue} onChange={handleChange} style={inputStyle}/></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Adószám</label><br/><input name="tax_number" value={formData.tax_number} onChange={handleChange} style={inputStyle}/></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Székhely</label><br/><input name="headquarters" value={formData.headquarters} onChange={handleChange} style={inputStyle}/></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Számlázási cím</label><br/><input name="billing_address" value={formData.billing_address} onChange={handleChange} style={inputStyle}/></div>
+ </div>
+
+ <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
+ <div style={{ flex: '1 1 100%' }}><strong style={{ fontSize: '13px', color: theme.text, borderBottom: `1px solid ${theme.border}`, display: 'block', paddingBottom: '5px' }}>🧠 CRM Paraméterek</strong></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Személyiségtípus</label><br/><select name="personality_type" value={formData.personality_type} onChange={handleChange} style={inputStyle}>{PERSONALITIES.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Meglévő Rendszer</label><br/><input name="existing_system" value={formData.existing_system} onChange={handleChange} style={inputStyle}/></div>
+ </div>
+
  <div style={{ background: theme.subBg, padding: '15px', borderRadius: '6px', display: 'flex', flexWrap: 'wrap', gap: '10px', border: `1px solid ${theme.border}` }}>
  <div style={{ flex: '1 1 100%' }}><strong style={{ fontSize: '13px', color: theme.text }}>📦 Üzleti & Csomag Paraméterek</strong></div>
- <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Választott Csomag</label><br/><input name="chosen_package" value={formData.chosen_package} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>
- <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Konzílium Szám</label><br/><input name="consultation_count" value={formData.consultation_count} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>
- <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Kiegészítők</label><br/><input name="addons" value={formData.addons} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Választott Csomag</label><br/><input name="chosen_package" value={formData.chosen_package} onChange={handleChange} style={inputStyle}/></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Konzílium Szám</label><br/><input name="consultation_count" value={formData.consultation_count} onChange={handleChange} style={inputStyle}/></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#0056b3' }}>Kiegészítők</label><br/><input name="addons" value={formData.addons} onChange={handleChange} style={inputStyle}/></div>
  <div style={{ flex: '1 1 22%', display: 'flex', alignItems: 'center', gap: '10px', marginTop: '15px' }}><input type="checkbox" name="discount_applied" checked={formData.discount_applied} onChange={handleChange} style={{ transform: 'scale(1.4)' }}/><label style={{ fontSize: '12px', fontWeight: 'bold', color: '#28a745' }}>🏷️ Kedvezmény volt?</label></div>
- {formData.discount_applied && ( <div style={{ flex: '1 1 100%' }}><input name="discount_details" placeholder="Kedvezmény indoklása..." value={formData.discount_details} onChange={handleChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div> )}
+ {formData.discount_applied && ( <div style={{ flex: '1 1 100%' }}><input name="discount_details" placeholder="Kedvezmény indoklása..." value={formData.discount_details} onChange={handleChange} style={inputStyle}/></div> )}
  </div>
+
  <div style={{ marginTop: '15px' }}><button type="submit" style={{ padding: '10px 20px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>💾 Partner Rögzítése</button></div>
  </form>
  </div>
@@ -90,6 +111,8 @@ function App() {
  inputText: darkMode ? '#fff' : '#000',
  tableHeadBg: darkMode ? '#222' : '#343a40',
  };
+
+ const editInputStyle = { width: '100%', padding: '8px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText, boxSizing: 'border-box' };
 
  const fetchPartners = async () => { const res = await fetch(`${BACKEND_URL}/api/partners`); setPartners(await res.json()); };
  const fetchLogs = async (id) => { const res = await fetch(`${BACKEND_URL}/api/partners/${id}/logs`); setLogs(await res.json()); };
@@ -162,14 +185,10 @@ function App() {
  const handleAddDocument = async (docType) => {
  if (!newDocName.trim() || !newDocUrl.trim()) return alert('Adj meg nevet és linket!');
  const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/documents`, {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
+ method: 'POST', headers: { 'Content-Type': 'application/json' },
  body: JSON.stringify({ doc_type: docType, doc_name: newDocName, doc_url: newDocUrl, doc_note: newDocNote })
  });
- if (res.ok) {
- setNewDocName(''); setNewDocUrl(''); setNewDocNote('');
- fetchDocuments(selectedPartner.id); fetchLogs(selectedPartner.id);
- }
+ if (res.ok) { setNewDocName(''); setNewDocUrl(''); setNewDocNote(''); fetchDocuments(selectedPartner.id); fetchLogs(selectedPartner.id); }
  };
  const handleDeleteDocument = async (docId) => { if (!window.confirm("Törlöd a dokumentumot?")) return; const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/documents/${docId}`, { method: 'DELETE' }); if (res.ok) fetchDocuments(selectedPartner.id); };
  
@@ -231,18 +250,28 @@ function App() {
  </div>
  )}
 
+ {/* BŐVÍTETT SZERKESZTŐ MODÁL */}
  {editingPartner && (
  <div style={{ background: theme.subBg, padding: '20px', borderRadius: '8px', marginBottom: '20px', border: `1px solid ${theme.border}` }}>
  <h3 style={{ borderBottom: '2px solid #ffc107', paddingBottom: '10px', color: '#ffc107', marginTop: 0 }}>✏️ Szerkesztés: {editingPartner.company_name}</h3>
  <form onSubmit={handleSaveEdit}>
- <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
- <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév</label><br/><input value={editingPartner.company_name} onChange={(e) => setEditingPartner({...editingPartner, company_name: e.target.value})} required style={{ width: '100%', padding: '8px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>
- <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Személyiségtípus</label><br/><select value={editingPartner.personality_type || 'Nincs megadva'} onChange={(e) => setEditingPartner({...editingPartner, personality_type: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}>{PERSONALITIES.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
- <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Meglévő rendszer</label><br/><input value={editingPartner.existing_system || ''} onChange={(e) => setEditingPartner({...editingPartner, existing_system: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>
- <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Csomag</label><br/><input value={editingPartner.chosen_package || ''} onChange={(e) => setEditingPartner({...editingPartner, chosen_package: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>
- <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Konzílium</label><br/><input value={editingPartner.consultation_count || ''} onChange={(e) => setEditingPartner({...editingPartner, consultation_count: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>
- <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kedvezmény volt?</label><br/><input type="checkbox" checked={editingPartner.discount_applied || false} onChange={(e) => setEditingPartner({...editingPartner, discount_applied: e.target.checked})} style={{ transform: 'scale(1.4)', marginTop: '8px' }}/></div>
- {editingPartner.discount_applied && <div style={{ flex: '1 1 22%' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kedvezmény oka</label><br/><input value={editingPartner.discount_details || ''} onChange={(e) => setEditingPartner({...editingPartner, discount_details: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/></div>}
+ <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév</label><br/><input value={editingPartner.company_name || ''} onChange={(e) => setEditingPartner({...editingPartner, company_name: e.target.value})} required style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Döntéshozó</label><br/><input value={editingPartner.contact_person || ''} onChange={(e) => setEditingPartner({...editingPartner, contact_person: e.target.value})} required style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Telefon</label><br/><input value={editingPartner.phone || ''} onChange={(e) => setEditingPartner({...editingPartner, phone: e.target.value.replace(/[^0-9+\s]/g, '')})} required style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>E-mail</label><br/><input type="email" value={editingPartner.email || ''} onChange={(e) => setEditingPartner({...editingPartner, email: e.target.value})} style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Weboldal</label><br/><input value={editingPartner.website || ''} onChange={(e) => setEditingPartner({...editingPartner, website: e.target.value})} style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Árbevétel</label><br/><input value={editingPartner.revenue || ''} onChange={(e) => setEditingPartner({...editingPartner, revenue: e.target.value})} style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Adószám</label><br/><input value={editingPartner.tax_number || ''} onChange={(e) => setEditingPartner({...editingPartner, tax_number: e.target.value})} style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Székhely</label><br/><input value={editingPartner.headquarters || ''} onChange={(e) => setEditingPartner({...editingPartner, headquarters: e.target.value})} style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Számlázási cím</label><br/><input value={editingPartner.billing_address || ''} onChange={(e) => setEditingPartner({...editingPartner, billing_address: e.target.value})} style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Értékesítő (Manager)</label><br/><input value={editingPartner.manager || ''} onChange={(e) => setEditingPartner({...editingPartner, manager: e.target.value})} style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Személyiségtípus</label><br/><select value={editingPartner.personality_type || 'Nincs megadva'} onChange={(e) => setEditingPartner({...editingPartner, personality_type: e.target.value})} style={editInputStyle}>{PERSONALITIES.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Meglévő rendszer</label><br/><input value={editingPartner.existing_system || ''} onChange={(e) => setEditingPartner({...editingPartner, existing_system: e.target.value})} style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Csomag</label><br/><input value={editingPartner.chosen_package || ''} onChange={(e) => setEditingPartner({...editingPartner, chosen_package: e.target.value})} style={editInputStyle}/></div>
+ <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Konzílium</label><br/><input value={editingPartner.consultation_count || ''} onChange={(e) => setEditingPartner({...editingPartner, consultation_count: e.target.value})} style={editInputStyle}/></div>
+ <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '20px' }}><input type="checkbox" checked={editingPartner.discount_applied || false} onChange={(e) => setEditingPartner({...editingPartner, discount_applied: e.target.checked})} style={{ transform: 'scale(1.4)' }}/><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kedvezmény volt?</label></div>
+ {editingPartner.discount_applied && ( <div><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Kedvezmény oka</label><br/><input value={editingPartner.discount_details || ''} onChange={(e) => setEditingPartner({...editingPartner, discount_details: e.target.value})} style={editInputStyle}/></div> )}
  </div>
  <div style={{ display: 'flex', gap: '10px' }}>
  <button type="submit" style={{ padding: '8px 16px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>💾 Mentés</button>
@@ -274,11 +303,8 @@ function App() {
  <li key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '12px', background: theme.subBg, borderRadius: '6px', border: `1px solid ${theme.border}`, marginBottom: '8px' }}>
  <input type="checkbox" onChange={async () => {
  await fetch(`${BACKEND_URL}/api/partners/${t.partner_id}/tasks/${t.id}/complete`, { method: 'PUT' });
- fetchTodayTasks();
- fetchPartners();
- if (selectedPartner && selectedPartner.id === t.partner_id) {
- fetchTasksAndLogs(t.partner_id);
- }
+ fetchTodayTasks(); fetchPartners();
+ if (selectedPartner && selectedPartner.id === t.partner_id) { fetchTasksAndLogs(t.partner_id); }
  }} style={{ transform: 'scale(1.4)', cursor: 'pointer' }} title="Készre jelölés" />
  <div>
  <strong style={{ display: 'block', fontSize: '15px' }}>🏢 {t.company_name}</strong>
@@ -335,8 +361,10 @@ function App() {
  )}
  </div>
 
+ {/* PARTNER MUNKATERÜLET (ADATLAP) */}
  {selectedPartner && (
  <div id="partner-workspace" style={{ borderTop: '4px solid #007bff', paddingTop: '30px', marginTop: '20px', background: theme.cardBg, color: theme.text, padding: '25px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
+ 
  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: `2px solid ${theme.border}`, paddingBottom: '15px' }}>
  <div>
  <h2 style={{ margin: 0, fontSize: '26px' }}>🏢 {selectedPartner.company_name}</h2>
@@ -351,6 +379,22 @@ function App() {
  <div style={{ display: 'flex', gap: '10px' }}>
  <button onClick={() => handleDeletePartner(selectedPartner.id)} style={{ padding: '10px 15px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>🗑️ Törlés</button>
  <button onClick={handleGhosting} style={{ padding: '10px 15px', background: '#6f42c1', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>☠️ Zombie Lead (Eltűnt)</button>
+ </div>
+ </div>
+
+ {/* VADONATÚJ: PARTNER ADATLAP BLOKK A MUNKATERÜLETEN */}
+ <div style={{ background: theme.subBg, padding: '20px', borderRadius: '8px', marginBottom: '25px', border: `1px solid ${theme.border}` }}>
+ <h4 style={{ margin: '0 0 15px 0', borderBottom: `2px solid ${theme.border}`, paddingBottom: '8px', color: '#007bff' }}>👤 Partner Adatlap</h4>
+ <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '15px' }}>
+ <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>DÖNTÉSHOZÓ</span><span style={{ fontSize: '14px', fontWeight: 'bold' }}>{selectedPartner.contact_person || '-'}</span></div>
+ <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>TELEFON</span><span style={{ fontSize: '14px', fontWeight: '500' }}>{selectedPartner.phone || '-'}</span></div>
+ <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>E-MAIL</span><span style={{ fontSize: '14px', fontWeight: '500' }}>{selectedPartner.email || '-'}</span></div>
+ <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>WEBOLDAL</span><span style={{ fontSize: '14px', fontWeight: '500' }}>{selectedPartner.website || '-'}</span></div>
+ <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>ÁRBEVÉTEL</span><span style={{ fontSize: '14px', fontWeight: '500' }}>{selectedPartner.revenue || '-'}</span></div>
+ <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>ADÓSZÁM</span><span style={{ fontSize: '14px', fontWeight: '500' }}>{selectedPartner.tax_number || '-'}</span></div>
+ <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>SZÉKHELY</span><span style={{ fontSize: '14px', fontWeight: '500' }}>{selectedPartner.headquarters || '-'}</span></div>
+ <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>SZÁMLÁZÁSI CÍM</span><span style={{ fontSize: '14px', fontWeight: '500' }}>{selectedPartner.billing_address || '-'}</span></div>
+ <div><span style={{ fontSize: '11px', display: 'block', fontWeight: 'bold', opacity: 0.6 }}>ÉRTÉKESÍTŐ</span><span style={{ fontSize: '14px', fontWeight: '500', color: '#28a745' }}>{selectedPartner.manager || '-'}</span></div>
  </div>
  </div>
 
@@ -404,17 +448,17 @@ function App() {
  </div>
  </div>
 
- {/* DOKUMENTUMOK & PDF CSATOLÁS MEGJEGYZÉSSEL */}
+ {/* DOKUMENTUMOK */}
  <div style={{ background: theme.subBg, padding: '15px', borderRadius: '6px', border: `1px solid ${theme.border}` }}>
  <h4 style={{ marginTop: 0, borderBottom: `1px solid ${theme.border}`, paddingBottom: '8px' }}>📂 Dokumentumok, PDF-ek & Playbook</h4>
  <div style={{ display: 'flex', gap: '5px', marginBottom: '10px', flexWrap: 'wrap' }}>
- <input type="text" placeholder="Fájl neve (pl. ÁSZF.pdf)..." value={newDocName} onChange={e => setNewDocName(e.target.value)} style={{ flex: 1, minWidth: '130px', padding: '10px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/>
- <input type="text" placeholder="PDF / URL Link..." value={newDocUrl} onChange={e => setNewDocUrl(e.target.value)} style={{ flex: 2, minWidth: '150px', padding: '10px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/>
- <input type="text" placeholder="Megjegyzés a PDF-hez..." value={newDocNote} onChange={e => setNewDocNote(e.target.value)} style={{ flex: 2, minWidth: '150px', padding: '10px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/>
+ <input type="text" placeholder="Fájl neve..." value={newDocName} onChange={e => setNewDocName(e.target.value)} style={{ flex: 1, minWidth: '130px', padding: '10px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/>
+ <input type="text" placeholder="Link..." value={newDocUrl} onChange={e => setNewDocUrl(e.target.value)} style={{ flex: 2, minWidth: '150px', padding: '10px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/>
+ <input type="text" placeholder="Megjegyzés..." value={newDocNote} onChange={e => setNewDocNote(e.target.value)} style={{ flex: 2, minWidth: '150px', padding: '10px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/>
  </div>
  <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
- <button onClick={() => handleAddDocument('offer')} style={{ flex: 1, padding: '10px', background: '#17a2b8', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>+ Ajánlat PDF</button>
- <button onClick={() => handleAddDocument('contract')} style={{ flex: 1, padding: '10px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>+ Szerződés PDF</button>
+ <button onClick={() => handleAddDocument('offer')} style={{ flex: 1, padding: '10px', background: '#17a2b8', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>+ Ajánlat</button>
+ <button onClick={() => handleAddDocument('contract')} style={{ flex: 1, padding: '10px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>+ Szerződés</button>
  <button onClick={() => handleAddDocument('playbook')} style={{ flex: 1, padding: '10px', background: '#6f42c1', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>+ Playbook</button>
  </div>
  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
@@ -437,7 +481,7 @@ function App() {
 
  </div>
  
- {/* KINÉZETRE KISZÍNEZETT ÉS IKONOS INTERAKCIÓS NAPLÓ (TIMELINE) */}
+ {/* INTERAKCIÓS NAPLÓ */}
  <div style={{ flex: '1 1 400px', background: theme.cardBg, padding: '20px', borderRadius: '6px', border: `1px solid ${theme.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
  <h3 style={{ marginTop: 0, borderBottom: `2px solid ${theme.border}`, paddingBottom: '10px' }}>📜 Interakciós Napló</h3>
  <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
@@ -450,7 +494,6 @@ function App() {
  let icon = '💬';
  let textColor = theme.text;
 
- // 1. KULCSSZÓ ALAPÚ FELÜLÍRÁS (Ez biztosítja, hogy a státuszváltás "mögött" lévő szöveg is formázva legyen)
  if (note.includes('playbook')) {
  bg = darkMode ? '#2e1065' : '#f3e8ff'; borderColor = '#d8b4fe'; icon = '📘'; textColor = '#9333ea';
  } else if (note.includes('szerződés')) {
@@ -462,7 +505,6 @@ function App() {
  } else if (note.includes('ajánlat')) {
  bg = darkMode ? '#082f49' : '#e0f2fe'; borderColor = '#bae6fd'; icon = '📄'; textColor = '#0284c7';
  }
- // 2. AKCIÓ TÍPUS ALAPÚ BESOROLÁS (Ha a fenti kulcsszavak egyike sem szerepel)
  else if (action === 'LEJÁRT FELADAT') {
  bg = darkMode ? '#3a1111' : '#fff5f5'; borderColor = '#f5c6cb'; icon = '⚠️'; textColor = '#dc3545';
  } else if (action === 'STÁTUSZVÁLTÁS') {
