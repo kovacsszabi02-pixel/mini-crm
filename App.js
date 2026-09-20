@@ -437,35 +437,54 @@ function App() {
 
              </div>
              
-             {/* INTERAKCIÓS NAPLÓ (TIMELINE) */}
+             {/* KINÉZETRE KISZÍNEZETT ÉS IKONOS INTERAKCIÓS NAPLÓ (TIMELINE) */}
              <div style={{ flex: '1 1 400px', background: theme.cardBg, padding: '20px', borderRadius: '6px', border: `1px solid ${theme.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                  <h3 style={{ marginTop: 0, borderBottom: `2px solid ${theme.border}`, paddingBottom: '10px' }}>📜 Interakciós Napló</h3>
                  <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
                      {logs.map(l => {
-                         const isOverdue = l.action_type === 'LEJÁRT FELADAT';
-                         const isStatusChange = l.action_type === 'STÁTUSZVÁLTÁS';
-                         const isEmail = l.action_type === 'E-MAIL KÜLDVE';
-                         const isDoc = l.action_type === 'ÚJ DOKUMENTUM';
-                         
-                         let bg = 'transparent';
+                         const action = l.action_type || '';
+                         const note = (l.note || '').toLowerCase();
+
+                         let bg = darkMode ? '#1e1e1e' : '#fff';
                          let borderColor = theme.border;
                          let icon = '💬';
                          let textColor = theme.text;
 
-                         if (isOverdue) { bg = darkMode ? '#3a1111' : '#fff5f5'; borderColor = '#f5c6cb'; icon = '⚠️'; textColor = '#dc3545'; }
-                         else if (isStatusChange) { bg = darkMode ? '#11223a' : '#e8f4f8'; borderColor = '#b8daff'; icon = '🔄'; textColor = '#007bff'; }
-                         else if (isEmail) { bg = darkMode ? '#113a1a' : '#eef9f0'; borderColor = '#c3e6cb'; icon = '✉️'; textColor = '#28a745'; }
-                         else if (isDoc) { bg = darkMode ? '#3a3311' : '#fff3cd'; borderColor = '#ffeeba'; icon = '📄'; textColor = '#ffc107'; }
+                         if (action === 'LEJÁRT FELADAT') {
+                             bg = darkMode ? '#3a1111' : '#fff5f5'; borderColor = '#f5c6cb'; icon = '⚠️'; textColor = '#dc3545';
+                         } else if (action === 'STÁTUSZVÁLTÁS') {
+                             bg = darkMode ? '#11223a' : '#e8f4f8'; borderColor = '#b8daff'; icon = '🔄'; textColor = '#007bff';
+                         } else if (action === 'E-MAIL KÜLDVE') {
+                             bg = darkMode ? '#113a1a' : '#eef9f0'; borderColor = '#c3e6cb'; icon = '✉️'; textColor = '#28a745';
+                         } else if (action === 'ÚJ DOKUMENTUM' || note.includes('playbook') || note.includes('szerződés') || note.includes('ajánlat')) {
+                             if (note.includes('playbook')) {
+                                 bg = darkMode ? '#2e1065' : '#f3e8ff'; borderColor = '#d8b4fe'; icon = '📘'; textColor = '#9333ea';
+                             } else if (note.includes('szerződés')) {
+                                 bg = darkMode ? '#1e293b' : '#f1f5f9'; borderColor = '#cbd5e1'; icon = '✍️'; textColor = '#475569';
+                             } else if (note.includes('ajánlat')) {
+                                 bg = darkMode ? '#082f49' : '#e0f2fe'; borderColor = '#bae6fd'; icon = '📄'; textColor = '#0284c7';
+                             } else {
+                                 bg = darkMode ? '#3a3311' : '#fff3cd'; borderColor = '#ffeeba'; icon = '📁'; textColor = '#d97706';
+                             }
+                         } else if (action === 'ÚJ FELADAT') {
+                             bg = darkMode ? '#431407' : '#ffedd5'; borderColor = '#fed7aa'; icon = '📌'; textColor = '#c2410c';
+                         } else if (action === 'FELADAT KÉSZ') {
+                             bg = darkMode ? '#052e16' : '#f0fdf4'; borderColor = '#bbf7d0'; icon = '✅'; textColor = '#16a34a';
+                         } else if (action === 'CREATE') {
+                             bg = darkMode ? '#2e1065' : '#ede9fe'; borderColor = '#ddd6fe'; icon = '🚀'; textColor = '#7c3aed';
+                         } else {
+                             bg = darkMode ? '#252525' : '#f8f9fa'; borderColor = theme.border; icon = '💬'; textColor = theme.text;
+                         }
 
                          return (
-                             <div key={l.id} style={{ borderBottom: `1px dashed ${borderColor}`, padding: '12px 0', background: bg, paddingLeft: '10px', paddingRight: '10px', borderRadius: '4px', marginBottom: '8px' }}>
+                             <div key={l.id} style={{ borderBottom: `1px dashed ${borderColor}`, padding: '12px 0', background: bg, paddingLeft: '12px', paddingRight: '12px', borderRadius: '6px', marginBottom: '8px', borderLeft: `4px solid ${textColor}` }}>
                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                     <strong style={{ fontSize: '12px', color: textColor }}>
-                                         {icon} {l.action_type}
+                                     <strong style={{ fontSize: '12px', color: textColor, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                         <span>{icon}</span> <span>{l.action_type}</span>
                                      </strong>
                                      <span style={{ fontSize: '11px', opacity: 0.7 }}>{new Date(l.created_at).toLocaleString()}</span>
                                  </div>
-                                 <span style={{ fontSize: '14px', display: 'block', wordBreak: 'break-word' }}>
+                                 <span style={{ fontSize: '14px', display: 'block', wordBreak: 'break-word', color: theme.text }}>
                                      {l.note}
                                  </span>
                              </div>
