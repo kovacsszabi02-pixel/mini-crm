@@ -19,7 +19,6 @@ function AddPartnerForm({ onPartnerAdded, theme }) {
  const handleChange = (e) => { const { name, value, type, checked } = e.target; if (name === 'phone') { setFormData(prev => ({ ...prev, [name]: value.replace(/[^0-9+\s]/g, '') })); return; } setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value })); };
  
  const fetchOptenData = async () => {
-    // API Placeholder - Itt hívjuk meg az Opten API-t ha van kulcs
     if(!formData.company_name) return alert("Írd be a cégnevet a kereséshez!");
     alert("Opten API kulcs hiányzik. Ez a gomb fogja automatikusan behúzni az Adószámot, Székhelyet és Árbevételt, ha az API bekötésre kerül.");
  };
@@ -215,7 +214,6 @@ function App() {
  if (res.ok) { setNewDocName(''); setNewDocUrl(''); setNewDocNote(''); fetchDocuments(selectedPartner.id); fetchLogs(selectedPartner.id); }
  };
  const handleDeleteDocument = async (docId) => { if (!window.confirm("Törlöd a dokumentumot?")) return; const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/documents/${docId}`, { method: 'DELETE' }); if (res.ok) fetchDocuments(selectedPartner.id); };
- const sendEmail = async () => { if (!selectedPartner.email) return alert('Nincs email cím megadva!'); if (!selectedTplId) return alert('Válassz sablont!'); const tpl = emailTemplates.find(t => t.id.toString() === selectedTplId); if (tpl) { await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/logs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note: `E-mail küldve: ${tpl.title}`, action_type: 'E-MAIL KÜLDVE' }) }); fetchLogs(selectedPartner.id); fetchPartners(); window.location.href = `mailto:${selectedPartner.email}?subject=${encodeURIComponent(tpl.subject)}&body=${encodeURIComponent(tpl.body)}`; } };
 
  const handleAddConsilium = async () => {
     if (!newConsilDate || !newConsilNote.trim()) return alert("Dátum és megjegyzés kötelező!");
