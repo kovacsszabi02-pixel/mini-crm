@@ -146,7 +146,7 @@ function App() {
  const postTask = async (desc, date) => { await fetch(`${BACKEND_URL}/api/partners/${updated.id}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: desc, due_date: date }) }); };
 
  if (pendingStatus === '2. Kapcsolatfelvétel alatt') {
-     const isCold = selectedPartner.lead_source === 'Cold Lead';
+     const isCold = updated.lead_source === 'Cold Lead';
      const days = isCold ? 2 : 0;
      const desc = isCold ? 'Megkeresés (2 munkanapon belül)' : 'Megkeresés (2 órán belül!)';
      await postTask(desc, getWorkingDaysLater(days));
@@ -212,12 +212,27 @@ function App() {
     const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/consultations`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scheduled_date: newConsilDate, notes: newConsilNote }) });
     if (res.ok) { setNewConsilDate(''); setNewConsilNote(''); fetchConsultations(selectedPartner.id); }
  };
- const updateConsilium = async (id, field, value) => {
+
+ // Smooth typing handlers for consultations without losing focus
+ const handleConsiliumNoteChange = (id, value) => {
+    setConsultations(prev => prev.map(c => c.id === id ? { ...c, notes: value } : c));
+ };
+
+ const saveConsiliumNote = async (id) => {
+    const cons = consultations.find(c => c.id === id);
+    if (!cons) return;
+    await fetch(`${BACKEND_URL}/api/consultations/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cons) });
+    fetchConsultations(selectedPartner.id);
+ };
+
+ const updateConsiliumField = async (id, field, value) => {
     const cons = consultations.find(c => c.id === id);
     const updated = { ...cons, [field]: value };
+    setConsultations(prev => prev.map(c => c.id === id ? updated : c));
     await fetch(`${BACKEND_URL}/api/consultations/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
     fetchConsultations(selectedPartner.id);
  };
+
  const deleteConsilium = async (id) => { if(!window.confirm("Törlöd?")) return; await fetch(`${BACKEND_URL}/api/consultations/${id}`, { method: 'DELETE' }); fetchConsultations(selectedPartner.id); };
 
  const filteredPartners = partners.filter(p => {
@@ -469,9 +484,9 @@ function App() {
  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
  {consultations.map(c => (
  <li key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: theme.cardBg, borderRadius: '4px', border: `1px solid ${theme.border}`, marginBottom: '8px', flexWrap: 'wrap' }}>
- <input type="checkbox" checked={c.is_completed} disabled={c.is_completed} onChange={(e) => updateConsilium(c.id, 'is_completed', e.target.checked)} style={{ transform: 'scale(1.3)' }} title="Lezárás"/>
- <input type="date" value={c.scheduled_date} disabled={c.is_completed} onChange={(e) => updateConsilium(c.id, 'scheduled_date', e.target.value)} style={{ padding: '6px', border: `1px solid ${theme.border}`, borderRadius: '4px', background: c.is_completed ? 'transparent' : theme.inputBg, color: theme.inputText }}/>
- <input type="text" value={c.notes} disabled={c.is_completed} onChange={(e) => updateConsilium(c.id, 'notes', e.target.value)} style={{ flex: '1 1 200px', minWidth: '150px', padding: '6px', border: `1px solid ${theme.border}`, borderRadius: '4px', textDecoration: c.is_completed ? 'line-through' : 'none', background: c.is_completed ? 'transparent' : theme.inputBg, color: theme.inputText }}/>
+ <input type="checkbox" checked={c.is_completed} disabled={c.is_completed} onChange={(e) => updateConsiliumField(c.id, 'is_completed', e.target.checked)} style={{ transform: 'scale(1.3)' }} title="Lezárás"/>
+ <input type="date" value={c.scheduled_date} disabled={c.is_completed} onChange={(e) => updateConsiliumField(c.id, 'scheduled_date', e.target.value)} style={{ padding: '6px', border: `1px solid ${theme.border}`, borderRadius: '4px', background: c.is_completed ? 'transparent' : theme.inputBg, color: theme.inputText }}/>
+ <input type="text" value={c.notes} disabled={c.is_completed} onChange={(e) => handleConsiliumNoteChange(c.id, e.target.value)} onBlur={() => saveConsiliumNote(c.id)} style={{ flex: '1 1 200px', minWidth: '180px', padding: '6px', border: `1px solid ${theme.border}`, borderRadius: '4px', textDecoration: c.is_completed ? 'line-through' : 'none', background: c.is_completed ? 'transparent' : theme.inputBg, color: theme.inputText }}/>
  {!c.is_completed && <button onClick={() => deleteConsilium(c.id)} style={{ padding: '6px 10px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>➖</button>}
  </li>
  ))}
