@@ -213,7 +213,6 @@ function App() {
     if (res.ok) { setNewConsilDate(''); setNewConsilNote(''); fetchConsultations(selectedPartner.id); }
  };
 
- // Smooth typing handlers for consultations without losing focus
  const handleConsiliumNoteChange = (id, value) => {
     setConsultations(prev => prev.map(c => c.id === id ? { ...c, notes: value } : c));
  };
@@ -514,7 +513,7 @@ function App() {
  {documents.filter(d => d.doc_type === type).map(d => (
  <li key={d.id} style={{ marginBottom: '6px' }}>
  <a href={d.doc_url} target="_blank" rel="noreferrer" style={{ color: '#007bff', fontWeight: 'bold' }}>{d.doc_name}</a>
- {d.doc_note && <span style={{ display: 'block', fontSize: '11px', opacity: 0.8, fontStyle: 'italic' }}>💬 {d.doc_note}</span>}
+ {d.doc_note && <span style={{ display: 'block', fontSize: '11px', opacity: 0.8 }}>💬 {d.doc_note}</span>}
  <button onClick={() => handleDeleteDocument(d.id)} style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontWeight: 'bold', marginLeft: '5px' }}>✖</button>
  </li>
  ))}
@@ -552,17 +551,13 @@ function App() {
  } else { bg = darkMode ? '#252525' : '#f8f9fa'; borderColor = theme.border; icon = '💬'; textColor = theme.text; }
 
  let lineIndicator = null;
+ const lineColor = darkMode ? '#666' : '#999';
  if (l.lineStyle === 'start') {
-     lineIndicator = <div style={{ position: 'absolute', top: '24px', left: '-20px', bottom: '-8px', width: '15px', borderLeft: '2px dashed #007bff', borderTop: '2px dashed #007bff', borderTopLeftRadius: '6px' }}></div>;
+     lineIndicator = <div style={{ position: 'absolute', top: '24px', left: '-20px', bottom: '-8px', width: '15px', borderLeft: `1px dashed ${lineColor}`, borderTop: `1px dashed ${lineColor}`, borderTopLeftRadius: '6px' }}></div>;
  } else if (l.lineStyle === 'middle') {
-     lineIndicator = <div style={{ position: 'absolute', top: '-8px', left: '-20px', bottom: '-8px', width: '2px', borderLeft: '2px dashed #007bff' }}></div>;
+     lineIndicator = <div style={{ position: 'absolute', top: '-8px', left: '-20px', bottom: '-8px', width: '1px', borderLeft: `1px dashed ${lineColor}` }}></div>;
  } else if (l.lineStyle === 'end') {
-     lineIndicator = (
-         <div style={{ position: 'absolute', top: '-8px', left: '-20px', height: '30px', width: '15px', borderLeft: '2px dashed #007bff', borderBottom: '2px dashed #007bff', borderBottomLeftRadius: '6px' }}>
-             <span style={{ position: 'absolute', bottom: '-7px', left: '-5px', color: '#007bff', fontSize: '10px', fontWeight: 'bold' }}>▼</span>
-         </div>
-     );
-     icon = '➔';
+     lineIndicator = <div style={{ position: 'absolute', top: '-8px', left: '-20px', height: '30px', width: '15px', borderLeft: `1px dashed ${lineColor}`, borderBottom: `1px dashed ${lineColor}`, borderBottomLeftRadius: '6px' }}></div>;
  }
 
  return (
