@@ -17,11 +17,6 @@ function AddPartnerForm({ onPartnerAdded, theme }) {
  const [formData, setFormData] = useState({ company_name: '', contact_person: '', phone: '', email: '', website: '', revenue: '', tax_number: '', billing_address: '', headquarters: '', manager: '', accepted_offer: '', chosen_package: '', addons: '', personality_type: 'Nincs megadva', personality_custom: '', existing_system: '', discount_applied: false, discount_details: '', lead_source: 'Válassz...', lead_source_custom: '' });
  
  const handleChange = (e) => { const { name, value, type, checked } = e.target; if (name === 'phone') { setFormData(prev => ({ ...prev, [name]: value.replace(/[^0-9+\s]/g, '') })); return; } setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value })); };
- 
- const fetchOptenData = async () => {
-    if(!formData.company_name) return alert("Írd be a cégnevet a kereséshez!");
-    alert("Opten API kulcs hiányzik. Ez a gomb fogja automatikusan behúzni az Adószámot, Székhelyet és Árbevételt, ha az API bekötésre kerül.");
- };
 
  const handleSubmit = async (e) => { 
      e.preventDefault(); 
@@ -40,7 +35,7 @@ function AddPartnerForm({ onPartnerAdded, theme }) {
  <form onSubmit={handleSubmit}>
  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '15px' }}>
  <div style={{ flex: '1 1 100%' }}><strong style={{ fontSize: '13px', color: theme.text, borderBottom: `1px solid ${theme.border}`, display: 'block', paddingBottom: '5px' }}>👤 Alapadatok & Elérhetőségek</strong></div>
- <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév *</label><div style={{display:'flex', gap:'5px'}}><input name="company_name" value={formData.company_name} onChange={handleChange} required style={inputStyle}/><button type="button" onClick={fetchOptenData} style={{padding:'8px', background:'#343a40', color:'#fff', border:'none', borderRadius:'4px', cursor:'pointer'}} title="Keresés Optenben">🔍</button></div></div>
+ <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Cégnév *</label><input name="company_name" value={formData.company_name} onChange={handleChange} required style={inputStyle}/></div>
  <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Döntéshozó *</label><br/><input name="contact_person" value={formData.contact_person} onChange={handleChange} required style={inputStyle}/></div>
  <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Telefonszám *</label><br/><input name="phone" value={formData.phone} onChange={handleChange} required style={inputStyle}/></div>
  <div style={{ flex: '1 1 22%', minWidth: '200px' }}><label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email</label><br/><input name="email" type="email" value={formData.email} onChange={handleChange} style={inputStyle}/></div>
@@ -465,18 +460,18 @@ function App() {
 
  <div style={{ background: theme.subBg, padding: '15px', borderRadius: '6px', marginBottom: '20px', border: `1px solid ${theme.border}` }}>
  <h4 style={{ marginTop: 0, borderBottom: `1px solid ${theme.border}`, paddingBottom: '8px', color: '#17a2b8' }}>🧑‍⚕️ Konzíliumok</h4>
- <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
- <input type="date" value={newConsilDate} onChange={e => setNewConsilDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/>
- <input type="text" placeholder="Kötelező megjegyzés (mi történt?)..." value={newConsilNote} onChange={e => setNewConsilNote(e.target.value)} style={{ flex: 2, padding: '8px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/>
+ <div style={{ display: 'flex', gap: '8px', marginBottom: '15px', flexWrap: 'wrap' }}>
+ <input type="date" value={newConsilDate} onChange={e => setNewConsilDate(e.target.value)} style={{ flex: '1 1 140px', padding: '8px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/>
+ <input type="text" placeholder="Kötelező megjegyzés (mi történt?)..." value={newConsilNote} onChange={e => setNewConsilNote(e.target.value)} style={{ flex: '2 1 250px', padding: '8px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/>
  <button onClick={handleAddConsilium} style={{ padding: '8px 15px', background: '#17a2b8', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>➕</button>
  </div>
  {consultations.length === 0 ? <p style={{ fontSize: '13px', opacity: 0.7 }}>Nincs rögzített konzílium.</p> : (
  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
  {consultations.map(c => (
- <li key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: theme.cardBg, borderRadius: '4px', border: `1px solid ${theme.border}`, marginBottom: '8px' }}>
+ <li key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: theme.cardBg, borderRadius: '4px', border: `1px solid ${theme.border}`, marginBottom: '8px', flexWrap: 'wrap' }}>
  <input type="checkbox" checked={c.is_completed} disabled={c.is_completed} onChange={(e) => updateConsilium(c.id, 'is_completed', e.target.checked)} style={{ transform: 'scale(1.3)' }} title="Lezárás"/>
  <input type="date" value={c.scheduled_date} disabled={c.is_completed} onChange={(e) => updateConsilium(c.id, 'scheduled_date', e.target.value)} style={{ padding: '6px', border: `1px solid ${theme.border}`, borderRadius: '4px', background: c.is_completed ? 'transparent' : theme.inputBg, color: theme.inputText }}/>
- <input type="text" value={c.notes} disabled={c.is_completed} onChange={(e) => updateConsilium(c.id, 'notes', e.target.value)} style={{ flex: 1, padding: '6px', border: `1px solid ${theme.border}`, borderRadius: '4px', textDecoration: c.is_completed ? 'line-through' : 'none', background: c.is_completed ? 'transparent' : theme.inputBg, color: theme.inputText }}/>
+ <input type="text" value={c.notes} disabled={c.is_completed} onChange={(e) => updateConsilium(c.id, 'notes', e.target.value)} style={{ flex: '1 1 200px', minWidth: '150px', padding: '6px', border: `1px solid ${theme.border}`, borderRadius: '4px', textDecoration: c.is_completed ? 'line-through' : 'none', background: c.is_completed ? 'transparent' : theme.inputBg, color: theme.inputText }}/>
  {!c.is_completed && <button onClick={() => deleteConsilium(c.id)} style={{ padding: '6px 10px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>➖</button>}
  </li>
  ))}
@@ -547,7 +542,11 @@ function App() {
  } else if (l.lineStyle === 'middle') {
      lineIndicator = <div style={{ position: 'absolute', top: '-8px', left: '-20px', bottom: '-8px', width: '2px', borderLeft: '2px dashed #007bff' }}></div>;
  } else if (l.lineStyle === 'end') {
-     lineIndicator = <div style={{ position: 'absolute', top: '-8px', left: '-20px', height: '30px', width: '15px', borderLeft: '2px dashed #007bff', borderBottom: '2px dashed #007bff', borderBottomLeftRadius: '6px' }}></div>;
+     lineIndicator = (
+         <div style={{ position: 'absolute', top: '-8px', left: '-20px', height: '30px', width: '15px', borderLeft: '2px dashed #007bff', borderBottom: '2px dashed #007bff', borderBottomLeftRadius: '6px' }}>
+             <span style={{ position: 'absolute', bottom: '-7px', left: '-5px', color: '#007bff', fontSize: '10px', fontWeight: 'bold' }}>▼</span>
+         </div>
+     );
      icon = '➔';
  }
 
