@@ -91,7 +91,6 @@ function App() {
  const [tasks, setTasks] = useState([]);
  const [documents, setDocuments] = useState([]);
  const [consultations, setConsultations] = useState([]);
- const [emailTemplates, setEmailTemplates] = useState([]);
  const [todayTasks, setTodayTasks] = useState([]);
 
  const [showStatusModal, setShowStatusModal] = useState(false);
@@ -103,7 +102,6 @@ function App() {
  const [newDocName, setNewDocName] = useState('');
  const [newDocUrl, setNewDocUrl] = useState('');
  const [newDocNote, setNewDocNote] = useState('');
- const [selectedTplId, setSelectedTplId] = useState('');
  const [newConsilDate, setNewConsilDate] = useState('');
  const [newConsilNote, setNewConsilNote] = useState('');
 
@@ -120,14 +118,13 @@ function App() {
  const fetchTasksAndLogs = async (id) => { const res = await fetch(`${BACKEND_URL}/api/partners/${id}/tasks`); setTasks(await res.json()); fetchLogs(id); fetchTodayTasks(); };
  const fetchDocuments = async (id) => { const res = await fetch(`${BACKEND_URL}/api/partners/${id}/documents`); setDocuments(await res.json()); };
  const fetchConsultations = async (id) => { const res = await fetch(`${BACKEND_URL}/api/partners/${id}/consultations`); setConsultations(await res.json()); };
- const fetchEmailTemplates = async () => { const res = await fetch(`${BACKEND_URL}/api/email-templates`); setEmailTemplates(await res.json()); };
  const fetchTodayTasks = async () => { const res = await fetch(`${BACKEND_URL}/api/tasks/today`); setTodayTasks(await res.json()); };
 
- useEffect(() => { fetchPartners(); fetchTodayTasks(); fetchEmailTemplates(); }, []);
+ useEffect(() => { fetchPartners(); fetchTodayTasks(); }, []);
  useEffect(() => { setCurrentPage(1); }, [searchTerm, statusFilter]);
 
  const handleSelectPartner = (partner) => {
- setSelectedPartner(partner); setPlainNote(''); setNewTaskDesc(''); setNewTaskDate(''); setNewDocName(''); setNewDocUrl(''); setNewDocNote(''); setSelectedTplId('');
+ setSelectedPartner(partner); setPlainNote(''); setNewTaskDesc(''); setNewTaskDate(''); setNewDocName(''); setNewDocUrl(''); setNewDocNote('');
  fetchTasksAndLogs(partner.id); fetchDocuments(partner.id); fetchConsultations(partner.id);
  setTimeout(() => { document.getElementById('partner-workspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);
  };
