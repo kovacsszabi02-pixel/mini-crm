@@ -154,7 +154,6 @@ function App() {
  const updated = await res.json(); setSelectedPartner(updated); setShowStatusModal(false); fetchPartners();
  const postTask = async (desc, date) => { await fetch(`${BACKEND_URL}/api/partners/${updated.id}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: desc, due_date: date }) }); };
 
- // === AUTOMATIZÁCIÓS MOTOR (0.1% RULES) ===
  if (pendingStatus === '2. Kapcsolatfelvétel alatt') {
      const isCold = selectedPartner.lead_source === 'Cold Lead';
      const days = isCold ? 2 : 0;
@@ -236,9 +235,10 @@ function App() {
  const matchesSearch = ((p.company_name?.toLowerCase() || '').includes(term) || (p.contact_person?.toLowerCase() || '').includes(term) || (p.phone?.toLowerCase() || '').includes(term) || (p.email?.toLowerCase() || '').includes(term) || (p.tax_number?.toLowerCase() || '').includes(term) || (p.website?.toLowerCase() || '').includes(term) || (p.chosen_package?.toLowerCase() || '').includes(term) || (p.addons?.toLowerCase() || '').includes(term) || (p.billing_address?.toLowerCase() || '').includes(term));
  return matchesSearch && (statusFilter === '' || p.status === statusFilter);
  });
+ 
  const currentPartners = filteredPartners.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+ const totalPages = Math.ceil(filteredPartners.length / itemsPerPage);
 
- // Visual Timeline logic based on image (Task Create -> dashed line -> Task Complete)
  const activeTaskLines = new Set();
  const processedLogs = logs.map(l => {
      let lineStyle = 'none';
@@ -285,7 +285,6 @@ function App() {
  <div style={{ marginBottom: '15px' }}><label style={{ fontWeight: 'bold', fontSize: '13px', color: '#dc3545' }}>❌ KÖTELEZŐ INDOKLÁS *</label><br/><select required value={triggerData.reason} onChange={e => setTriggerData({...triggerData, reason: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText, marginBottom: '8px' }}><option value="">Válassz okot...</option>{LOST_REASONS.map(r => <option key={r} value={r}>{r}</option>)}</select><input type="text" placeholder="Részletek..." required value={triggerData.details} onChange={e => setTriggerData({...triggerData, details: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText, boxSizing: 'border-box' }}/></div>
  )}
  
- {/* Default fallback for missing specifically requested fields */}
  {!['3. Tárgyalás', '4. Ajánlat kiküldés', '5. Szerződésírás', '7. Díjbekérő', '8. Fizetésre vár', '10. Sablonírás', '12. Teljesített', '13. Elveszített'].includes(pendingStatus) && (
  <div style={{ marginBottom: '15px' }}><label style={{ fontWeight: 'bold', fontSize: '13px' }}>📅 Következő interakció határideje *</label><br/><input type="date" required value={triggerData.next_interaction} onChange={e => setTriggerData({...triggerData, next_interaction: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText, boxSizing: 'border-box' }}/></div>
  )}
@@ -469,7 +468,6 @@ function App() {
  </ul>
  </div>
 
- {/* KONZÍLIUM FÜL */}
  <div style={{ background: theme.subBg, padding: '15px', borderRadius: '6px', marginBottom: '20px', border: `1px solid ${theme.border}` }}>
  <h4 style={{ marginTop: 0, borderBottom: `1px solid ${theme.border}`, paddingBottom: '8px', color: '#17a2b8' }}>🧑‍⚕️ Konzíliumok</h4>
  <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
@@ -523,7 +521,6 @@ function App() {
 
  </div>
  
- {/* INTERAKCIÓS NAPLÓ KÖTŐJEL LOGIKÁVAL[cite: 6] */}
  <div style={{ flex: '1 1 400px', background: theme.cardBg, padding: '20px', borderRadius: '6px', border: `1px solid ${theme.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
  <h3 style={{ marginTop: 0, borderBottom: `2px solid ${theme.border}`, paddingBottom: '10px' }}>📜 Interakciós Napló</h3>
  <div style={{ maxHeight: '800px', overflowY: 'auto', paddingLeft: '10px' }}>
@@ -549,7 +546,6 @@ function App() {
  } else if (action === 'CREATE') { bg = darkMode ? '#2e1065' : '#ede9fe'; borderColor = '#ddd6fe'; icon = '🚀'; textColor = '#7c3aed';
  } else { bg = darkMode ? '#252525' : '#f8f9fa'; borderColor = theme.border; icon = '💬'; textColor = theme.text; }
 
- //[cite: 6] Vonal rajzolása a Feladat Kész és az Új Feladat közé
  let lineIndicator = null;
  if (l.lineStyle === 'start') {
      lineIndicator = <div style={{ position: 'absolute', top: '24px', left: '-20px', bottom: '-8px', width: '15px', borderLeft: '2px dashed #007bff', borderTop: '2px dashed #007bff', borderTopLeftRadius: '6px' }}></div>;
@@ -557,7 +553,7 @@ function App() {
      lineIndicator = <div style={{ position: 'absolute', top: '-8px', left: '-20px', bottom: '-8px', width: '2px', borderLeft: '2px dashed #007bff' }}></div>;
  } else if (l.lineStyle === 'end') {
      lineIndicator = <div style={{ position: 'absolute', top: '-8px', left: '-20px', height: '30px', width: '15px', borderLeft: '2px dashed #007bff', borderBottom: '2px dashed #007bff', borderBottomLeftRadius: '6px' }}></div>;
-     icon = '➔'; // Nyíl beillesztése az eredeti feladathoz[cite: 6]
+     icon = '➔';
  }
 
  return (
