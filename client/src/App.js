@@ -93,11 +93,6 @@ function App() {
  const [triggerData, setTriggerData] = useState({ next_interaction: '', reason: '', details: '', meeting_date: '', expected_decision: '', expected_payment: '', payment_type: '', offer_validity: '', contract_deadline: '', proforma_validity: '', handover_deadline: '' });
  
  const [plainNote, setPlainNote] = useState('');
- 
- // Chatbot state-ek
- const [chatMessages, setChatMessages] = useState([]);
- const [chatInput, setChatInput] = useState('');
- const [isChatLoading, setIsChatLoading] = useState(false);
 
  const [newTaskDesc, setNewTaskDesc] = useState('');
  const [newTaskDate, setNewTaskDate] = useState('');
@@ -128,8 +123,6 @@ function App() {
  const handleSelectPartner = (partner) => {
  setSelectedPartner(partner); 
  setPlainNote(''); 
- setChatMessages([{ role: 'model', text: `Üdvözöllek! Én vagyok a ${partner.company_name} stratégiai CRM asszisztense. Kérdezz bátran az ügyfélről, a kockázatokról vagy a teendőkről!` }]);
- setChatInput('');
  setNewTaskDesc(''); 
  setNewTaskDate(''); 
  setNewDocName(''); 
@@ -212,39 +205,6 @@ function App() {
  const handleSaveEdit = async (e) => { e.preventDefault(); const res = await fetch(`${BACKEND_URL}/api/partners/${editingPartner.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editingPartner) }); if (res.ok) { const updated = await res.json(); if (selectedPartner?.id === updated.id) setSelectedPartner(updated); setEditingPartner(null); fetchPartners(); } };
  const handleDeletePartner = async (id) => { if (!window.confirm("Biztosan törlöd ezt a partnert?")) return; const res = await fetch(`${BACKEND_URL}/api/partners/${id}`, { method: 'DELETE' }); if (res.ok) { if (selectedPartner?.id === id) setSelectedPartner(null); fetchPartners(); fetchTodayTasks(); } };
  const handleAddPlainNote = async () => { if (!plainNote.trim()) return; const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/logs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note: plainNote, action_type: 'MEGJEGYZÉS' }) }); if (res.ok) { setPlainNote(''); fetchLogs(selectedPartner.id); fetchPartners(); } };
-
- // Chatbot üzenetküldés
- const handleSendChatMessage = async () => {
-    if (!chatInput.trim() || isChatLoading) return;
-    const userMsg = chatInput.trim();
-    const updatedMessages = [...chatMessages, { role: 'user', text: userMsg }];
-    setChatMessages(updatedMessages);
-    setChatInput('');
-    setIsChatLoading(true);
-
-    try {
-        const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/ai-chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message_history: updatedMessages })
-        });
-        if (res.ok) {
-            const data = await res.json();
-            setChatMessages(prev => [...prev, { role: 'model', text: data.reply }]);
-        } else {
-            alert("Szerverhiba a chatbot hívásakor.");
-        }
-    } catch (err) {
-        console.error(err);
-        alert("Hálózati hiba.");
-    }
-    setIsChatLoading(false);
- };
-
- const handleSaveChatToLogs = async (textToSave) => {
-    const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/logs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note: textToSave, action_type: 'AI CHATBOT' }) }); 
-    if (res.ok) { fetchLogs(selectedPartner.id); fetchPartners(); alert("Válasz sikeresen mentve a naplóba!"); }
- };
 
  const handleAddTask = async () => { if (!newTaskDesc.trim()) return; const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: newTaskDesc, due_date: newTaskDate }) }); if (res.ok) { setNewTaskDesc(''); setNewTaskDate(''); fetchTasksAndLogs(selectedPartner.id); } };
  const completeTask = async (taskId) => { await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/tasks/${taskId}/complete`, { method: 'PUT' }); fetchTasksAndLogs(selectedPartner.id); fetchPartners(); fetchTodayTasks(); };
@@ -501,28 +461,6 @@ function App() {
  </div>
  </div>
 
- {/* INTERAKTÍV AI CHATBOT DOBOZ */}
- <div style={{ background: theme.subBg, padding: '15px', borderRadius: '6px', marginBottom: '20px', border: `1px solid ${theme.border}` }}>
- <h4 style={{ marginTop: 0, borderBottom: `1px solid ${theme.border}`, paddingBottom: '8px', color: '#9333ea', display: 'flex', alignItems: 'center', gap: '8px' }}>🤖 Stratégiai AI Chatbot</h4>
- 
- <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '6px', padding: '12px', height: '260px', overflowY: 'auto', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
- {chatMessages.map((msg, index) => (
- <div key={index} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', background: msg.role === 'user' ? '#007bff' : (darkMode ? '#331144' : '#f0e6ff'), color: msg.role === 'user' ? '#fff' : theme.text, padding: '10px 14px', borderRadius: '8px', fontSize: '13px', whiteSpace: 'pre-wrap', border: `1px solid ${msg.role === 'user' ? '#0056b3' : '#d8b4fe'}` }}>
- <strong>{msg.role === 'user' ? 'Te: ' : 'AI Elemző: '}</strong>{msg.text}
- {msg.role === 'model' && (
- <button onClick={() => handleSaveChatToLogs(msg.text)} style={{ display: 'block', marginTop: '6px', background: '#9333ea', color: '#fff', border: 'none', borderRadius: '4px', padding: '3px 8px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' }}>💾 Mentés a Naplóba</button>
- )}
- </div>
- ))}
- {isChatLoading && <div style={{ alignSelf: 'flex-start', color: '#888', fontStyle: 'italic', fontSize: '13px' }}>⏳ Az AI elemzi a stratégiát...</div>}
- </div>
-
- <div style={{ display: 'flex', gap: '8px' }}>
- <input type="text" placeholder="Kérdezz a kockázatokról, KPI táblázatról, lezárási esélyről..." value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => { if(e.key === 'Enter') handleSendChatMessage(); }} style={{ flex: 1, padding: '10px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/>
- <button onClick={handleSendChatMessage} disabled={isChatLoading || !chatInput.trim()} style={{ padding: '10px 20px', background: (isChatLoading || !chatInput.trim()) ? '#6c757d' : '#9333ea', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>Küldés</button>
- </div>
- </div>
-
  <div style={{ background: theme.subBg, padding: '15px', borderRadius: '6px', marginBottom: '20px', border: `1px solid ${theme.border}` }}>
  <h4 style={{ marginTop: 0, borderBottom: `1px solid ${theme.border}`, paddingBottom: '8px' }}>📌 Kötelező Feladatok</h4>
  <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
@@ -608,8 +546,7 @@ function App() {
  let icon = '💬';
  let textColor = theme.text;
 
- if (action === 'AI CHATBOT') { bg = darkMode ? '#31104e' : '#f5effa'; borderColor = '#d8b4fe'; icon = '🤖'; textColor = '#9333ea';
- } else if (note.includes('playbook')) { bg = darkMode ? '#2e1065' : '#f3e8ff'; borderColor = '#d8b4fe'; icon = '📘'; textColor = '#9333ea';
+ if (note.includes('playbook')) { bg = darkMode ? '#2e1065' : '#f3e8ff'; borderColor = '#d8b4fe'; icon = '📘'; textColor = '#9333ea';
  } else if (note.includes('szerződés')) { bg = darkMode ? '#1e293b' : '#f1f5f9'; borderColor = '#cbd5e1'; icon = '✍️'; textColor = '#475569';
  } else if (note.includes('kapcsolatfelvétel') || note.includes('hívás') || note.includes('telefon')) { bg = darkMode ? '#3b250a' : '#fff7e6'; borderColor = '#ffe8cc'; icon = '📞'; textColor = '#d97706';
  } else if (action === 'E-MAIL KÜLDVE' || note.includes('e-mail') || note.includes('email')) { bg = darkMode ? '#113a1a' : '#eef9f0'; borderColor = '#c3e6cb'; icon = '✉️'; textColor = '#28a745';
