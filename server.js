@@ -80,11 +80,11 @@ app.post('/api/partners/:id/logs', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// -- VALÓDI AI CHATBOT VÉGPONT --
+// -- JAVÍTOTT AI CHATBOT VÉGPONT (HIBÁTLAN VÁLTOZÓ-KEZELÉSSEL) --
 app.post('/api/partners/:id/ai-chat', async (req, res) => {
   try {
     const partnerId = req.params.id;
-    const { message_history } = req.body; // Teljes chat előzményt kapunk
+    const { message_history } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
     
     if (!apiKey) return res.status(500).json({ error: "Hiányzik a GEMINI_API_KEY." });
@@ -97,7 +97,8 @@ app.post('/api/partners/:id/ai-chat', async (req, res) => {
     const p = partnerRes.rows[0];
     const logsText = logsRes.rows.map(l => `[${new Date(l.created_at).toISOString().split('T')[0]}] ${l.action_type}: ${l.note}`).join('\n');
 
-    const partnerContext = `
+    // JAVÍTVA: partnerDataText pontosan definiálva
+    const partnerDataText = `
       Cégnév: ${p.company_name}
       Döntéshozó: ${p.contact_person}
       Státusz: ${p.status}
@@ -186,11 +187,11 @@ lezárás óta eltelt 3-6 hónap, VAGY "alvó" státuszban vannak 6-12 hónapja,
 növekedést mutat. Érték: Az érintett leadek/ügyfelek darabszáma. Adatok:\n${partnerDataText}
 
 FELHASZNÁLÓI KÉRDÉS: ${user_message || "Készíts egy elemzést"}
-    
-    PARTNER ADATOK:
-    ${partnerContext}`;
 
-    // Összeállítjuk a Gemini formátumot a beszélgetési előzményekkel
+    PARTNER ADATOK:
+    ${partnerDataText}`;
+
+    
     const contents = [
       { role: 'user', parts: [{ text: systemInstruction }] },
       ...(message_history || []).map(m => ({
