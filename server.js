@@ -80,7 +80,7 @@ app.post('/api/partners/:id/logs', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// -- AI RIPORT GENERÁLÓ VÉGPONT --
+// -- AI RIPORT GENERÁLÓ VÉGPONT (JAVÍTOTT MODELLNÉVVEL) --
 app.post('/api/partners/:id/ai-summary', async (req, res) => {
   try {
     const partnerId = req.params.id;
@@ -110,18 +110,22 @@ app.post('/api/partners/:id/ai-summary', async (req, res) => {
 
     const prompt = `Te egy szigorú, elemző CRM asszisztens vagy. Készíts egy maximum 3 mondatos, tűpontos vezetői riportot az alábbi adatokból. Térj ki a jelenlegi állapotra, a legnagyobb kockázatra (ha van) és a javasolt következő lépésre. Ne használj bevezető udvariaskodást. Adatok:\n${partnerDataText}`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    // ITT VAN A JAVÍTÁS: gemini-2.0-flash
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     });
 
     const data = await response.json();
-    if (!data.candidates) return res.status(500).json({ error: "Az AI nem küldött érvényes választ.", details: data });
+    if (!data.candidates) {
+        console.error("AI API Hiba részletek:", data);
+        return res.status(500).json({ error: "Az AI nem küldött érvényes választ.", details: data });
+    }
 
     res.json({ summary: data.candidates[0].content.parts[0].text });
   } catch (err) {
-    console.error("AI API Hiba:", err);
+    console.error("AI API Kérés Hiba:", err);
     res.status(500).json({ error: "Szerverhiba az AI riport generálásakor." });
   }
 });

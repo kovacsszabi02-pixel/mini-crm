@@ -216,7 +216,7 @@ function App() {
             const data = await res.json();
             setAiReportNote(data.summary);
         } else {
-            alert("Szerver hiba az AI végpont hívásakor. Ellenőrizd az API kulcsot a Renderen!");
+            alert("Szerver hiba az AI végpont hívásakor. A részletekért nyisd meg a böngésző konzolját (F12 -> Network/Válasz)!");
         }
     } catch (error) {
         console.error(error);
