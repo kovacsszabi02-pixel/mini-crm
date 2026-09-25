@@ -80,7 +80,7 @@ app.post('/api/partners/:id/logs', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// -- AI CHATBOT / ELEMZŐ VÉGPONT (A KÉRT PROMPT ALAPJÁN) --
+// -- AI CHATBOT / ELEMZŐ VÉGPONT --
 app.post('/api/partners/:id/ai-summary', async (req, res) => {
   try {
     const partnerId = req.params.id;
@@ -327,7 +327,7 @@ pool.query(`
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS discount_applied BOOLEAN DEFAULT false;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS discount_details TEXT;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS payment_type TEXT;
- ALTER TABLE partners AS ADD COLUMN IF NOT EXISTS next_interaction_date TEXT;
+ ALTER TABLE partners ADD COLUMN IF NOT EXISTS next_interaction_date TEXT;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS offer_validity TEXT;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS contract_deadline TEXT;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS proforma_validity TEXT;
