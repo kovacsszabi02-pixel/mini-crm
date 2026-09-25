@@ -80,10 +80,11 @@ app.post('/api/partners/:id/logs', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// -- AI RIPORT GENERÁLÓ VÉGPONT (GEMINI-3.8-FLASH) --
+// -- AI CHATBOT / ELEMZŐ VÉGPONT (A KÉRT PROMPT ALAPJÁN) --
 app.post('/api/partners/:id/ai-summary', async (req, res) => {
   try {
     const partnerId = req.params.id;
+    const { user_message } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
     
     if (!apiKey) {
@@ -93,7 +94,7 @@ app.post('/api/partners/:id/ai-summary', async (req, res) => {
     const partnerRes = await pool.query('SELECT * FROM partners WHERE id = $1', [partnerId]);
     if (partnerRes.rows.length === 0) return res.status(404).json({ error: "Partner nem található." });
     
-    const logsRes = await pool.query('SELECT action_type, note, created_at FROM audit_logs WHERE partner_id = $1 ORDER BY created_at DESC LIMIT 20', [partnerId]);
+    const logsRes = await pool.query('SELECT action_type, note, created_at FROM audit_logs WHERE partner_id = $1 ORDER BY created_at DESC LIMIT 30', [partnerId]);
 
     const p = partnerRes.rows[0];
     const logsText = logsRes.rows.map(l => `[${new Date(l.created_at).toISOString().split('T')[0]}] ${l.action_type}: ${l.note}`).join('\n');
@@ -104,7 +105,7 @@ app.post('/api/partners/:id/ai-summary', async (req, res) => {
       Státusz: ${p.status}
       Személyiség: ${p.personality_type}
       Üzleti csomag: ${p.chosen_package}
-      Utolsó 20 interakció:
+      Utolsó 30 interakció:
       ${logsText}
     `;
 
@@ -185,9 +186,13 @@ magas válaszidő (120 percen túli reakció a cég részéről), a negatív tó
 kifogások (pl. ár) növelik az értéket.
 9. Upsell / Reaktiválási Potenciál - Hogyan számold: Szűrd ki azokat a leadeket, ahol az utolsó
 lezárás óta eltelt 3-6 hónap, VAGY "alvó" státuszban vannak 6-12 hónapja, de a cégprofiljuk
-növekedést mutat. Érték: Az érintett leadek/ügyfelek darabszáma. Adatok:\n${partnerDataText}`;
+növekedést mutat. Érték: Az érintett leadek/ügyfelek darabszáma. Adatok:\n${partnerDataText}
 
-    // JAVÍTVA A LEGFRIISSEBB MODELLRE
+FELHASZNÁLÓI KÉRDÉS: ${user_message || "Készíts egy elemzést"}
+
+PARTNER ADATOK:
+${partnerDataText}`;
+
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -322,7 +327,7 @@ pool.query(`
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS discount_applied BOOLEAN DEFAULT false;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS discount_details TEXT;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS payment_type TEXT;
- ALTER TABLE partners ADD COLUMN IF NOT EXISTS next_interaction_date TEXT;
+ ALTER TABLE partners AS ADD COLUMN IF NOT EXISTS next_interaction_date TEXT;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS offer_validity TEXT;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS contract_deadline TEXT;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS proforma_validity TEXT;
