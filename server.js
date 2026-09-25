@@ -80,7 +80,7 @@ app.post('/api/partners/:id/logs', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// -- JAVÍTOTT AI CHATBOT VÉGPONT (HIBÁTLAN VÁLTOZÓ-KEZELÉSSEL) --
+// -- TELJESEN JAVÍTOTT AI CHATBOT VÉGPONT --
 app.post('/api/partners/:id/ai-chat', async (req, res) => {
   try {
     const partnerId = req.params.id;
@@ -97,7 +97,7 @@ app.post('/api/partners/:id/ai-chat', async (req, res) => {
     const p = partnerRes.rows[0];
     const logsText = logsRes.rows.map(l => `[${new Date(l.created_at).toISOString().split('T')[0]}] ${l.action_type}: ${l.note}`).join('\n');
 
-    // JAVÍTVA: partnerDataText pontosan definiálva
+    
     const partnerDataText = `
       Cégnév: ${p.company_name}
       Döntéshozó: ${p.contact_person}
@@ -186,12 +186,11 @@ kifogások (pl. ár) növelik az értéket.
 lezárás óta eltelt 3-6 hónap, VAGY "alvó" státuszban vannak 6-12 hónapja, de a cégprofiljuk
 növekedést mutat. Érték: Az érintett leadek/ügyfelek darabszáma. Adatok:\n${partnerDataText}
 
-FELHASZNÁLÓI KÉRDÉS: ${user_message || "Készíts egy elemzést"}
+
 
     PARTNER ADATOK:
     ${partnerDataText}`;
 
-    
     const contents = [
       { role: 'user', parts: [{ text: systemInstruction }] },
       ...(message_history || []).map(m => ({
