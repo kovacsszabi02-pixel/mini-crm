@@ -80,16 +80,14 @@ app.post('/api/partners/:id/logs', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// -- AI CHATBOT / ELEMZŐ VÉGPONT --
-app.post('/api/partners/:id/ai-summary', async (req, res) => {
+// -- VALÓDI AI CHATBOT VÉGPONT --
+app.post('/api/partners/:id/ai-chat', async (req, res) => {
   try {
     const partnerId = req.params.id;
-    const { user_message } = req.body;
+    const { message_history } = req.body; // Teljes chat előzményt kapunk
     const apiKey = process.env.GEMINI_API_KEY;
     
-    if (!apiKey) {
-        return res.status(500).json({ error: "Szerver konfigurációs hiba: Hiányzik a GEMINI_API_KEY." });
-    }
+    if (!apiKey) return res.status(500).json({ error: "Hiányzik a GEMINI_API_KEY." });
 
     const partnerRes = await pool.query('SELECT * FROM partners WHERE id = $1', [partnerId]);
     if (partnerRes.rows.length === 0) return res.status(404).json({ error: "Partner nem található." });
@@ -99,17 +97,16 @@ app.post('/api/partners/:id/ai-summary', async (req, res) => {
     const p = partnerRes.rows[0];
     const logsText = logsRes.rows.map(l => `[${new Date(l.created_at).toISOString().split('T')[0]}] ${l.action_type}: ${l.note}`).join('\n');
 
-    const partnerDataText = `
+    const partnerContext = `
       Cégnév: ${p.company_name}
       Döntéshozó: ${p.contact_person}
       Státusz: ${p.status}
-      Személyiség: ${p.personality_type}
       Üzleti csomag: ${p.chosen_package}
-      Utolsó 30 interakció:
+      Utolsó interakciók:
       ${logsText}
     `;
 
-    const prompt = `Te egy professzionális értékesítési asszisztens / elemző vagy. Csak a mellékletben elküldött
+    const systemInstruction = `Te egy professzionális értékesítési asszisztens / elemző vagy. Csak a mellékletben elküldött
 táblázat alapján, valamint a feltöltött protokolt használva dolgozhatsz a partnerek kezelésében.
 Nem használhatsz ad-hoc jellegű dolgokat vagy adatokat. Az alábbiak a főbb feladataid, valamint
 azok stratégiai elemzése és építése:
@@ -189,26 +186,35 @@ lezárás óta eltelt 3-6 hónap, VAGY "alvó" státuszban vannak 6-12 hónapja,
 növekedést mutat. Érték: Az érintett leadek/ügyfelek darabszáma. Adatok:\n${partnerDataText}
 
 FELHASZNÁLÓI KÉRDÉS: ${user_message || "Készíts egy elemzést"}
+    
+    PARTNER ADATOK:
+    ${partnerContext}`;
 
-PARTNER ADATOK:
-${partnerDataText}`;
+    // Összeállítjuk a Gemini formátumot a beszélgetési előzményekkel
+    const contents = [
+      { role: 'user', parts: [{ text: systemInstruction }] },
+      ...(message_history || []).map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.text }]
+      }))
+    ];
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        body: JSON.stringify({ contents })
     });
 
     const data = await response.json();
     if (!data.candidates) {
-        console.error("AI API Hiba részletek:", data);
-        return res.status(500).json({ error: "Az AI nem küldött érvényes választ.", details: data });
+        console.error("AI API Hiba:", data);
+        return res.status(500).json({ error: "Az AI nem válaszolt.", details: data });
     }
 
-    res.json({ summary: data.candidates[0].content.parts[0].text });
+    res.json({ reply: data.candidates[0].content.parts[0].text });
   } catch (err) {
-    console.error("AI API Kérés Hiba:", err);
-    res.status(500).json({ error: "Szerverhiba az AI riport generálásakor." });
+    console.error("Chatbot Hiba:", err);
+    res.status(500).json({ error: "Szerverhiba a chatbot közben." });
   }
 });
 
@@ -254,7 +260,6 @@ app.put('/api/partners/:partnerId/tasks/:taskId/complete', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// -- KONZÍLIUM VÉGPONTOK --
 app.get('/api/partners/:id/consultations', async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM consultations WHERE partner_id = $1 ORDER BY scheduled_date ASC', [req.params.id])).rows); } 
     catch (err) { res.status(500).json({ error: err.message }); }
