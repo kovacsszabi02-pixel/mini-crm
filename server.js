@@ -80,7 +80,7 @@ app.post('/api/partners/:id/logs', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// -- AI RIPORT GENERÁLÓ VÉGPONT (JAVÍTOTT MODELLNÉVVEL) --
+// -- AI RIPORT GENERÁLÓ VÉGPONT (GEMINI-3.8-FLASH) --
 app.post('/api/partners/:id/ai-summary', async (req, res) => {
   try {
     const partnerId = req.params.id;
@@ -110,8 +110,8 @@ app.post('/api/partners/:id/ai-summary', async (req, res) => {
 
     const prompt = `Te egy szigorú, elemző CRM asszisztens vagy. Készíts egy maximum 3 mondatos, tűpontos vezetői riportot az alábbi adatokból. Térj ki a jelenlegi állapotra, a legnagyobb kockázatra (ha van) és a javasolt következő lépésre. Ne használj bevezető udvariaskodást. Adatok:\n${partnerDataText}`;
 
-    // ITT VAN A JAVÍTÁS: gemini-2.0-flash
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+    // JAVÍTVA A LEGFRIISSEBB MODELLRE
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
