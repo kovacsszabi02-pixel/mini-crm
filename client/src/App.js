@@ -91,7 +91,10 @@ function App() {
  const [showStatusModal, setShowStatusModal] = useState(false);
  const [pendingStatus, setPendingStatus] = useState('');
  const [triggerData, setTriggerData] = useState({ next_interaction: '', reason: '', details: '', meeting_date: '', expected_decision: '', expected_payment: '', payment_type: '', offer_validity: '', contract_deadline: '', proforma_validity: '', handover_deadline: '' });
+ 
  const [plainNote, setPlainNote] = useState('');
+ const [aiReportNote, setAiReportNote] = useState('');
+ const [isGeneratingAi, setIsGeneratingAi] = useState(false);
  const [newTaskDesc, setNewTaskDesc] = useState('');
  const [newTaskDate, setNewTaskDate] = useState('');
  const [newDocName, setNewDocName] = useState('');
@@ -119,7 +122,14 @@ function App() {
  useEffect(() => { setCurrentPage(1); }, [searchTerm, statusFilter]);
 
  const handleSelectPartner = (partner) => {
- setSelectedPartner(partner); setPlainNote(''); setNewTaskDesc(''); setNewTaskDate(''); setNewDocName(''); setNewDocUrl(''); setNewDocNote('');
+ setSelectedPartner(partner); 
+ setPlainNote(''); 
+ setAiReportNote(''); 
+ setNewTaskDesc(''); 
+ setNewTaskDate(''); 
+ setNewDocName(''); 
+ setNewDocUrl(''); 
+ setNewDocNote('');
  fetchTasksAndLogs(partner.id); fetchDocuments(partner.id); fetchConsultations(partner.id);
  setTimeout(() => { document.getElementById('partner-workspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);
  };
@@ -197,6 +207,30 @@ function App() {
  const handleSaveEdit = async (e) => { e.preventDefault(); const res = await fetch(`${BACKEND_URL}/api/partners/${editingPartner.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editingPartner) }); if (res.ok) { const updated = await res.json(); if (selectedPartner?.id === updated.id) setSelectedPartner(updated); setEditingPartner(null); fetchPartners(); } };
  const handleDeletePartner = async (id) => { if (!window.confirm("Biztosan törlöd ezt a partnert?")) return; const res = await fetch(`${BACKEND_URL}/api/partners/${id}`, { method: 'DELETE' }); if (res.ok) { if (selectedPartner?.id === id) setSelectedPartner(null); fetchPartners(); fetchTodayTasks(); } };
  const handleAddPlainNote = async () => { if (!plainNote.trim()) return; const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/logs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note: plainNote, action_type: 'MEGJEGYZÉS' }) }); if (res.ok) { setPlainNote(''); fetchLogs(selectedPartner.id); fetchPartners(); } };
+
+ const handleGenerateAiReport = async () => {
+    setIsGeneratingAi(true);
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/ai-summary`, { method: 'POST' });
+        if (res.ok) {
+            const data = await res.json();
+            setAiReportNote(data.summary);
+        } else {
+            alert("Szerver hiba az AI végpont hívásakor. Ellenőrizd az API kulcsot a Renderen!");
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Hálózati hiba.");
+    }
+    setIsGeneratingAi(false);
+ };
+
+ const handleAddAiReport = async () => { 
+    if (!aiReportNote.trim()) return; 
+    const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/logs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note: aiReportNote, action_type: 'AI RIPORT' }) }); 
+    if (res.ok) { setAiReportNote(''); fetchLogs(selectedPartner.id); fetchPartners(); } 
+ };
+
  const handleAddTask = async () => { if (!newTaskDesc.trim()) return; const res = await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: newTaskDesc, due_date: newTaskDate }) }); if (res.ok) { setNewTaskDesc(''); setNewTaskDate(''); fetchTasksAndLogs(selectedPartner.id); } };
  const completeTask = async (taskId) => { await fetch(`${BACKEND_URL}/api/partners/${selectedPartner.id}/tasks/${taskId}/complete`, { method: 'PUT' }); fetchTasksAndLogs(selectedPartner.id); fetchPartners(); fetchTodayTasks(); };
  
@@ -453,6 +487,25 @@ function App() {
  </div>
 
  <div style={{ background: theme.subBg, padding: '15px', borderRadius: '6px', marginBottom: '20px', border: `1px solid ${theme.border}` }}>
+ <h4 style={{ marginTop: 0, borderBottom: `1px solid ${theme.border}`, paddingBottom: '8px', color: '#9333ea', display: 'flex', alignItems: 'center', gap: '8px' }}>🤖 Rendszerbe épített AI Asszisztens</h4>
+ <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+ <button 
+    onClick={handleGenerateAiReport} 
+    disabled={isGeneratingAi} 
+    style={{ alignSelf: 'flex-start', padding: '10px 20px', background: isGeneratingAi ? '#6c757d' : '#007bff', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: isGeneratingAi ? 'not-allowed' : 'pointer' }}>
+    {isGeneratingAi ? '⏳ Elemzés folyamatban...' : '⚡ 3 Mondatos Riport Generálása'}
+ </button>
+ <textarea 
+    placeholder="Kattints az AI Riport Generálása gombra, és ide érkezik az összegzés..." 
+    value={aiReportNote} 
+    onChange={(e) => setAiReportNote(e.target.value)} 
+    style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText, resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
+ />
+ <button onClick={handleAddAiReport} disabled={!aiReportNote.trim()} style={{ alignSelf: 'flex-start', padding: '10px 20px', background: !aiReportNote.trim() ? '#d8b4fe' : '#9333ea', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: !aiReportNote.trim() ? 'not-allowed' : 'pointer' }}>Mentés a Naplóba</button>
+ </div>
+ </div>
+
+ <div style={{ background: theme.subBg, padding: '15px', borderRadius: '6px', marginBottom: '20px', border: `1px solid ${theme.border}` }}>
  <h4 style={{ marginTop: 0, borderBottom: `1px solid ${theme.border}`, paddingBottom: '8px' }}>📌 Kötelező Feladatok</h4>
  <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
  <input type="text" placeholder="Új feladat leírása..." value={newTaskDesc} onChange={(e) => setNewTaskDesc(e.target.value)} style={{ flex: 2, padding: '10px', borderRadius: '4px', border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.inputText }}/>
@@ -537,7 +590,8 @@ function App() {
  let icon = '💬';
  let textColor = theme.text;
 
- if (note.includes('playbook')) { bg = darkMode ? '#2e1065' : '#f3e8ff'; borderColor = '#d8b4fe'; icon = '📘'; textColor = '#9333ea';
+ if (action === 'AI RIPORT') { bg = darkMode ? '#31104e' : '#f5effa'; borderColor = '#d8b4fe'; icon = '🤖'; textColor = '#9333ea';
+ } else if (note.includes('playbook')) { bg = darkMode ? '#2e1065' : '#f3e8ff'; borderColor = '#d8b4fe'; icon = '📘'; textColor = '#9333ea';
  } else if (note.includes('szerződés')) { bg = darkMode ? '#1e293b' : '#f1f5f9'; borderColor = '#cbd5e1'; icon = '✍️'; textColor = '#475569';
  } else if (note.includes('kapcsolatfelvétel') || note.includes('hívás') || note.includes('telefon')) { bg = darkMode ? '#3b250a' : '#fff7e6'; borderColor = '#ffe8cc'; icon = '📞'; textColor = '#d97706';
  } else if (action === 'E-MAIL KÜLDVE' || note.includes('e-mail') || note.includes('email')) { bg = darkMode ? '#113a1a' : '#eef9f0'; borderColor = '#c3e6cb'; icon = '✉️'; textColor = '#28a745';
@@ -569,7 +623,7 @@ function App() {
  </strong>
  <span style={{ fontSize: '11px', opacity: 0.7 }}>{new Date(l.created_at).toLocaleString()}</span>
  </div>
- <span style={{ fontSize: '14px', display: 'block', wordBreak: 'break-word', color: theme.text }}>
+ <span style={{ fontSize: '14px', display: 'block', wordBreak: 'break-word', color: theme.text, whiteSpace: 'pre-wrap' }}>
  {l.note}
  </span>
  </div>
