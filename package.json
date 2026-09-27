@@ -1,10 +1,13 @@
 {
   "name": "mini-crm",
   "version": "1.0.0",
-  "description": "Mini CRM backend",
+  "description": "Mini CRM",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "cors": "^2.8.6",
