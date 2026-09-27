@@ -1,17 +1,24 @@
-const express = require('express');
-const cors = require('cors');
-const pool = require('./db');
+import express from 'express';
+import cors from 'cors';
+import pkg from 'pg';
+const { Pool } = pkg;
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log("--> FIGYELEM: CRM ENGINE FUT (0.1% DISCIPLINE ÉLESÍTVE)!");
+console.log("--> FIGYELEM: PROFI MULTI-TENANT SAAS CRM ENGINE FUT (0.1% DISCIPLINE)!");
 
 process.on('uncaughtException', (err) => console.error('KIVÉTELES HIBA:', err));
 process.on('unhandledRejection', (reason, promise) => console.error('NEM KEZELT PROMISE HIBA:', reason));
 
-const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbytG-MduXJ2sCgWKkdMipPZZJAbopjVz0XI5sASh-7SRlWZurT4fBjqB0pBuTjr0XxhPw/exec';
+// Adatbázis kapcsolat (Render / Helyi PostgreSQL)
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+});
+
+const SHEETS_WEBHOOK_URL = process.env.SHEETS_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbytG-MduXJ2sCgWKkdMipPZZJAbopjVz0XI5sASh-7SRlWZurT4fBjqB0pBuTjr0XxhPw/exec';
 
 async function syncToSheets(partnerData, action) {
   if (!SHEETS_WEBHOOK_URL) return;
@@ -24,8 +31,72 @@ async function syncToSheets(partnerData, action) {
   } catch (err) { console.error('[Google Sheets Hiba]:', err.message); }
 }
 
+// ==================== AUTH & USERS (Szuperadmin & Vezetői Kontroll) ====================
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const result = await pool.query('SELECT * FROM users WHERE email = $1 AND password = $2', [email, password]);
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Hibás e-mail cím vagy jelszó!' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await pool.query('SELECT id, name, email, role, tenant_name, created_at FROM users ORDER BY id DESC');
+    res.json(users.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/users', async (req, res) => {
+  try {
+    const { name, email, password, role, tenant_name } = req.body;
+    const newUser = await pool.query(
+      'INSERT INTO users (name, email, password, role, tenant_name) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, role, tenant_name',
+      [name, email, password, role || 'trader', tenant_name || 'Alap Cég']
+    );
+    res.status(201).json(newUser.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Felhasználó törölve.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== PARTNERS & CRM ENDPOINTS ====================
+
 app.get('/api/partners', async (req, res) => {
-  try { res.json((await pool.query('SELECT * FROM partners ORDER BY id DESC')).rows); } 
+  try { 
+    const { tenant, manager, role } = req.query;
+    let query = 'SELECT * FROM partners';
+    let params = [];
+    
+    // Szerepkör alapú szűrés
+    if (role === 'manager' && tenant) {
+      query += ' WHERE tenant_name = $1';
+      params.push(tenant);
+    } else if (role === 'trader' && manager) {
+      query += ' WHERE manager = $1';
+      params.push(manager);
+    }
+    
+    query += ' ORDER BY id DESC';
+    res.json((await pool.query(query, params)).rows); 
+  } 
   catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -33,9 +104,9 @@ app.post('/api/partners', async (req, res) => {
   try {
     const p = req.body;
     const newPartner = await pool.query(
-      `INSERT INTO partners (company_name, contact_person, phone, email, revenue, tax_number, billing_address, headquarters, status, manager, accepted_offer, chosen_package, addons, website, personality_type, personality_custom, existing_system, discount_applied, discount_details, lead_source, lead_source_custom, created_at, last_interaction_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING *`,
-      [p.company_name, p.contact_person, p.phone, p.email || '', p.revenue || '', p.tax_number || '', p.billing_address || '', p.headquarters || '', '1. Új lead', p.manager || '', p.accepted_offer || '', p.chosen_package || '', p.addons || '', p.website || '', p.personality_type || '', p.personality_custom || '', p.existing_system || '', p.discount_applied || false, p.discount_details || '', p.lead_source || '', p.lead_source_custom || '']
+      `INSERT INTO partners (company_name, contact_person, phone, email, revenue, tax_number, billing_address, headquarters, status, manager, accepted_offer, chosen_package, addons, website, personality_type, personality_custom, existing_system, discount_applied, discount_details, lead_source, lead_source_custom, tenant_name, created_at, last_interaction_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING *`,
+      [p.company_name, p.contact_person, p.phone, p.email || '', p.revenue || '', p.tax_number || '', p.billing_address || '', p.headquarters || '', '1. Új lead', p.manager || '', p.accepted_offer || '', p.chosen_package || '', p.addons || '', p.website || '', p.personality_type || '', p.personality_custom || '', p.existing_system || '', p.discount_applied || false, p.discount_details || '', p.lead_source || '', p.lead_source_custom || '', p.tenant_name || 'Alap Cég']
     );
     syncToSheets(newPartner.rows[0], 'CREATE');
     res.json(newPartner.rows[0]);
@@ -56,7 +127,7 @@ app.put('/api/partners/:id', async (req, res) => {
 
 app.put('/api/partners/:id/status', async (req, res) => {
   try {
-    const { status, note, lost_reason, payment_type, next_interaction_date, offer_validity, contract_deadline, proforma_validity, handover_deadline } = req.body;
+    const { status, note, lost_reason, payment_type, next_interaction_date, offer_validity, contract_deadline, proforma_validity, handover_deadline, userName } = req.body;
     const oldRes = await pool.query('SELECT status FROM partners WHERE id = $1', [req.params.id]);
     const oldStatus = oldRes.rows[0] ? oldRes.rows[0].status : '';
     
@@ -66,7 +137,7 @@ app.put('/api/partners/:id/status', async (req, res) => {
     );
     
     const logNote = note && note.trim() !== '' ? `${oldStatus} ➔ ${status} | Ok/Megjegyzés: ${note}` : `${oldStatus} ➔ ${status}`;
-    await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, old_status, new_status, note) VALUES ($1, $2, $3, $4, $5, $6)', [req.params.id, 'Rendszer', 'STÁTUSZVÁLTÁS', oldStatus, status, logNote]);
+    await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, old_status, new_status, note) VALUES ($1, $2, $3, $4, $5, $6)', [req.params.id, userName || 'Rendszer', 'STÁTUSZVÁLTÁS', oldStatus, status, logNote]);
     syncToSheets(updatedPartner.rows[0], 'STATUS_UPDATE');
     res.json(updatedPartner.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -75,7 +146,7 @@ app.put('/api/partners/:id/status', async (req, res) => {
 app.post('/api/partners/:id/logs', async (req, res) => {
   try {
     await pool.query('UPDATE partners SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = $1', [req.params.id]);
-    const newLog = await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4) RETURNING *', [req.params.id, 'Admin', req.body.action_type || 'MEGJEGYZÉS', req.body.note]);
+    const newLog = await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4) RETURNING *', [req.params.id, req.body.userName || 'Munkatárs', req.body.action_type || 'MEGJEGYZÉS', req.body.note]);
     res.json(newLog.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -106,7 +177,7 @@ app.get('/api/partners/:id/tasks', async (req, res) => {
 app.post('/api/partners/:id/tasks', async (req, res) => {
   try {
     const newTask = await pool.query('INSERT INTO tasks (partner_id, description, due_date) VALUES ($1, $2, $3) RETURNING *', [req.params.id, req.body.description, req.body.due_date || null]);
-    await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note, related_task_id) VALUES ($1, $2, $3, $4, $5)', [req.params.id, 'Admin', 'ÚJ FELADAT', `${req.body.description} ${req.body.due_date ? `(${req.body.due_date})` : ''}`, newTask.rows[0].id]);
+    await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note, related_task_id) VALUES ($1, $2, $3, $4, $5)', [req.params.id, req.body.userName || 'Munkatárs', 'ÚJ FELADAT', `${req.body.description} ${req.body.due_date ? `(${req.body.due_date})` : ''}`, newTask.rows[0].id]);
     res.json(newTask.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -116,13 +187,13 @@ app.put('/api/partners/:partnerId/tasks/:taskId/complete', async (req, res) => {
     await pool.query('UPDATE partners SET last_interaction_at = CURRENT_TIMESTAMP WHERE id = $1', [req.params.partnerId]);
     const updatedTask = await pool.query('UPDATE tasks SET is_completed = true WHERE id = $1 RETURNING *', [req.params.taskId]);
     if (updatedTask.rows.length > 0) {
-        await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note, related_task_id) VALUES ($1, $2, $3, $4, $5)', [req.params.partnerId, 'Admin', 'FELADAT KÉSZ', `Elvégezve: ${updatedTask.rows[0].description}`, updatedTask.rows[0].id]);
+        await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note, related_task_id) VALUES ($1, $2, $3, $4, $5)', [req.params.partnerId, req.body.userName || 'Munkatárs', 'FELADAT KÉSZ', `Elvégezve: ${updatedTask.rows[0].description}`, updatedTask.rows[0].id]);
     }
     res.json(updatedTask.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// -- KONZÍLIUM VÉGPONTOK --
+// Konzíliumok, Dokumentumok, Logok
 app.get('/api/partners/:id/consultations', async (req, res) => {
     try { res.json((await pool.query('SELECT * FROM consultations WHERE partner_id = $1 ORDER BY scheduled_date ASC', [req.params.id])).rows); } 
     catch (err) { res.status(500).json({ error: err.message }); }
@@ -143,18 +214,13 @@ app.delete('/api/consultations/:id', async (req, res) => {
 app.get('/api/partners/:id/documents', async (req, res) => { try { res.json((await pool.query('SELECT * FROM documents WHERE partner_id = $1 ORDER BY created_at DESC', [req.params.id])).rows); } catch (err) { res.status(500).json({ error: err.message }); }});
 app.post('/api/partners/:id/documents', async (req, res) => {
   try {
-    const { doc_type, doc_name, doc_url, doc_note } = req.body;
+    const { doc_type, doc_name, doc_url, doc_note, userName } = req.body;
     const newDoc = await pool.query('INSERT INTO documents (partner_id, doc_type, doc_name, doc_url, doc_note) VALUES ($1, $2, $3, $4, $5) RETURNING *', [req.params.id, doc_type, doc_name, doc_url, doc_note || '']);
-    await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', [req.params.id, 'Admin', 'ÚJ DOKUMENTUM', `${doc_name} ${doc_note ? `(Megjegyzés: ${doc_note})` : ''}`]);
+    await pool.query('INSERT INTO audit_logs (partner_id, user_name, action_type, note) VALUES ($1, $2, $3, $4)', [req.params.id, userName || 'Munkatárs', 'ÚJ DOKUMENTUM', `${doc_name} ${doc_note ? `(Megjegyzés: ${doc_note})` : ''}`]);
     res.json(newDoc.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.delete('/api/partners/:partnerId/documents/:docId', async (req, res) => { try { await pool.query('DELETE FROM documents WHERE id = $1', [req.params.docId]); res.json({ message: 'Törölve.' }); } catch (err) { res.status(500).json({ error: err.message }); }});
-
-app.get('/api/email-templates', async (req, res) => { try { res.json((await pool.query('SELECT * FROM email_templates ORDER BY id ASC')).rows); } catch (err) { res.status(500).json({ error: err.message }); }});
-app.post('/api/email-templates', async (req, res) => { try { res.json((await pool.query('INSERT INTO email_templates (title, subject, body) VALUES ($1, $2, $3) RETURNING *', [req.body.title, req.body.subject, req.body.body])).rows[0]); } catch (err) { res.status(500).json({ error: err.message }); }});
-app.put('/api/email-templates/:id', async (req, res) => { try { res.json((await pool.query('UPDATE email_templates SET title = $1, subject = $2, body = $3 WHERE id = $4 RETURNING *', [req.body.title, req.body.subject, req.body.body, req.params.id])).rows[0]); } catch (err) { res.status(500).json({ error: err.message }); }});
-app.delete('/api/email-templates/:id', async (req, res) => { try { await pool.query('DELETE FROM email_templates WHERE id = $1', [req.params.id]); res.json({ message: 'Törölve.' }); } catch (err) { res.status(500).json({ error: err.message }); }});
 
 app.get('/api/partners/:id/logs', async (req, res) => { try { res.json((await pool.query('SELECT * FROM audit_logs WHERE partner_id = $1 ORDER BY created_at DESC', [req.params.id])).rows); } catch (err) { res.status(500).json({ error: err.message }); }});
 app.delete('/api/partners/:id', async (req, res) => {
@@ -168,10 +234,13 @@ app.delete('/api/partners/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-const PORT = 5001;
-app.listen(PORT, () => console.log(`A szerver stabilan fut a http://localhost:${PORT} címen.`));
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => console.log(`A szerver stabilan fut a porton: ${PORT}`));
 
+// ==================== DB INITIALIZATION ====================
 pool.query(`
+ CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name TEXT NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, role TEXT DEFAULT 'trader', tenant_name TEXT DEFAULT 'Alap Cég', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+ 
  CREATE TABLE IF NOT EXISTS partners (id SERIAL PRIMARY KEY, company_name TEXT NOT NULL, contact_person TEXT, phone TEXT, status TEXT);
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS email TEXT;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS revenue TEXT;
@@ -187,6 +256,7 @@ pool.query(`
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS lead_source_custom TEXT;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS personality_type TEXT;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS personality_custom TEXT;
+ ALTER TABLE partners ADD COLUMN IF NOT EXISTS tenant_name TEXT DEFAULT 'Alap Cég';
  
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
  ALTER TABLE partners ADD COLUMN IF NOT EXISTS last_interaction_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
@@ -203,11 +273,14 @@ pool.query(`
  
  CREATE TABLE IF NOT EXISTS tasks (id SERIAL PRIMARY KEY, partner_id INT, description TEXT NOT NULL, is_completed BOOLEAN DEFAULT false, due_date TEXT, flagged_overdue BOOLEAN DEFAULT false, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
  CREATE TABLE IF NOT EXISTS documents (id SERIAL PRIMARY KEY, partner_id INT, doc_type TEXT, doc_name TEXT, doc_url TEXT, doc_note TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
- 
  CREATE TABLE IF NOT EXISTS audit_logs (id SERIAL PRIMARY KEY, partner_id INT, user_name TEXT, action_type TEXT, old_status TEXT, new_status TEXT, note TEXT, related_task_id INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
- ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS related_task_id INT;
- 
- CREATE TABLE IF NOT EXISTS email_templates (id SERIAL PRIMARY KEY, title TEXT NOT NULL, subject TEXT, body TEXT);
- 
  CREATE TABLE IF NOT EXISTS consultations (id SERIAL PRIMARY KEY, partner_id INT, scheduled_date TEXT, notes TEXT, is_completed BOOLEAN DEFAULT false, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
-`).then(() => console.log("✔ Adatbázis motor élesítve.")).catch(err => console.error("❌ Séma hiba:", err));
+`).then(async () => {
+  console.log("✔ Adatbázis sémák sikeresen létrehozva.");
+  // Alapértelmezett Szuperadmin létrehozása, ha még nincs
+  const adminCheck = await pool.query('SELECT * FROM users WHERE email = $1', ['admin@saas.com']);
+  if (adminCheck.rows.length === 0) {
+    await pool.query('INSERT INTO users (name, email, password, role, tenant_name) VALUES ($1, $2, $3, $4, $5)', ['Szuperadmin', 'admin@saas.com', 'admin123', 'superadmin', 'Fő Rendszer']);
+    console.log("✔ Alapértelmezett Szuperadmin létrehozva: admin@saas.com / admin123");
+  }
+}).catch(err => console.error("❌ Séma hiba:", err));
